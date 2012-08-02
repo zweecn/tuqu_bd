@@ -1,5 +1,11 @@
 #!/bin/bash
-### 格式化数据（包括挖掘数据和合作数据）
+
+#############################################################################
+# 
+# format数据的函数脚本
+# 适用于挖掘数据和定向数据的格式化
+#
+#############################################################################
 
 ### 1. 清洗 tag，去掉没有tag 的obj，把tag中的空格替换为_，用,分割tag,去掉重复的tag,去掉空tag
 function clean_tag
@@ -220,16 +226,62 @@ function remove_black_tag
 	}' ${black_objs} ${black_tags} ${type_index} ${tag_freq_modified} ${data_tag_type} > ${data_tag_type_filter_tags};
 }
 
-# delete * form objurl is tuhigh.com
+### 6 delete * form objurl is tuhigh.com  Take care of this
 function remove_tuhigh {
 	file=$1;
-	out=$2;
-	awk -F'\t' ' {
+	tmp=$2;
+	error_out=$3
+	awk -F'\t' -v out="${error_out}" ' {
 		if (index($1, "tuhigh.com")) {
-			print $0 > "./data/error_404";
+#			print $0 > "./data/error_404";
+			print $0 > out; 
 		} else {
 			print $0;
 		}
-	}' ${file} > ${out} 
+	}' ${file} > ${tmp}
+	mv ${file} ${file}.bak
+	mv ${tmp} ${file}
 }
 
+### 7  随机打散obj
+function rand_obj
+{
+	data_tag_type_filter_tags=$1
+	temp=$2
+	output_without_path=$3
+	awk -F '\t' '{
+    	print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"rand();
+	}' ${data_tag_type_filter_tags} >${temp}.all_data.tag_type_rand;
+	if [ ${?} -ne 0 ]
+	then
+    	echo "生成随机数失败！";
+    	exit 1;
+	fi;
+	sort -t'	' -r -n -k6,6 ${temp}.all_data.tag_type_rand |cut -f1,2,3,4,5 > ${output_without_path};
+	if [ ${?} -ne 0 ]
+	then
+    	echo "对随机数排序[打散obj]失败!";
+    	exit 1;
+	fi;
+}
+
+### 8 merge the img local path
+function merge_path
+{
+	path_data=$1
+	output_without_path=$2
+	output=$3
+	urls_to_download=$4
+	awk -F '\t' -v urls_to_download="${urls_to_download}" '{
+    if(FILENAME==ARGV[1]){
+        path[$2]=$1;
+    }else{
+        if($1 in path){
+            # objURL    tags    fromURL path  top_freq_tag   type
+            print $1"\t"$3"\t"$2"\t"path[$1]"\t"$4"\t"$5
+        }else{
+            print $0 > urls_to_download;
+        }
+    }
+	}' ${path_data} ${output_without_path} > ${output}
+}
