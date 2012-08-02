@@ -4,6 +4,7 @@
 # 
 # format数据的函数脚本
 # 适用于挖掘数据和定向数据的格式化
+# 调用前先执行 source ./shell/produce_img/format_func.sh
 #
 #############################################################################
 
@@ -13,32 +14,32 @@ function clean_tag
     func_input=$1;
     func_output=$2;
     awk -F '\t' '{
-    # objURL    fromURL     tags
-    if($1=="" || $2=="" || $3==""){
-        next;
-    }
-    split($3,tags,"\\$\\$");
-    # 图趣要求tag中不能有空格！且tag需用,分割
-    delete tag_set;
-    tag_str="";
-    for(i in tags){
-        tag=tags[i];
-        if(tag=="")
-            continue;
-        gsub(" ","_",tag);
-        gsub(",","_",tag);
-        ## 统一为小写字母
-        tag_set[tolower(tag)]=1;
-    }
-    for(tag in tag_set){
-        if(tag_str==""){
-            tag_str=tag;
-        }else{
-            tag_str=tag_str","tag;
-        }
-    }
-    if(tag_str!="")
-        print $1"\t"$2"\t"tag_str;
+		# objURL    fromURL     tags
+		if($1=="" || $2=="" || $3==""){
+			next;
+		}
+		split($3,tags,"\\$\\$");
+		# 图趣要求tag中不能有空格！且tag需用,分割
+		delete tag_set;
+		tag_str="";
+		for(i in tags){
+			tag=tags[i];
+			if(tag=="")
+				continue;
+			gsub(" ","_",tag);
+			gsub(",","_",tag);
+			## 统一为小写字母
+			tag_set[tolower(tag)]=1;
+		}
+		for(tag in tag_set){
+			if(tag_str==""){
+				tag_str=tag;
+			}else{
+				tag_str=tag_str","tag;
+			}
+		}
+		if(tag_str!="")
+			print $1"\t"$2"\t"tag_str;
     }' ${func_input} > ${func_output}
 }
 
@@ -116,38 +117,38 @@ function determine_tag_type
 function tag_modify
 {
 	tag_freq=$1
-	dingxiang_modified_tag=$2
-	dingxiang_data_tag_type=$3
+	suffix_modified_tag=$2
+	suffix_data_tag_type=$3
 	tag_modify_out=$4
 	tag_freq_modified=$5
 	awk -F '\t' -v out="${tag_modify_out}" '{
-	if(FILENAME==ARGV[1]){
-		tag_freq[$1]=$2;
-	}else if(FILENAME==ARGV[2]){
-		dingxiang_tag_change[$1]=$2;
-		if(!($2 in tag_freq))
-			tag_freq[$2]=tag_freq[$1];
-	}else if(FILENAME==ARGV[3]){
-		split($3,tags,",");
-		tag_str="";
-		for(i in tags){
-			tag=tags[i];
-			if(tag in dingxiang_tag_change){
-				tag=dingxiang_tag_change[tag];
+		if(FILENAME==ARGV[1]){
+			tag_freq[$1]=$2;
+		}else if(FILENAME==ARGV[2]){
+			suffix_tag_change[$1]=$2;
+			if(!($2 in tag_freq))
+				tag_freq[$2]=tag_freq[$1];
+		}else if(FILENAME==ARGV[3]){
+			split($3,tags,",");
+			tag_str="";
+			for(i in tags){
+				tag=tags[i];
+				if(tag in suffix_tag_change){
+					tag=suffix_tag_change[tag];
+				}
+				if(tag_str=="")
+					tag_str=tag;
+				else
+					tag_str=tag_str","tag;
 			}
-			if(tag_str=="")
-				tag_str=tag;
-			else
-				tag_str=tag_str","tag;
+			top_tag=($4 in suffix_tag_change)?suffix_tag_change[$4]:$4;
+			print $1"\t"$2"\t"tag_str"\t"top_tag"\t"$5 > out;
+		}	
+		}END{
+		for(tag in tag_freq){
+			print tag"\t"tag_freq[tag];
 		}
-		top_tag=($4 in dingxiang_tag_change)?dingxiang_tag_change[$4]:$4;
-		print $1"\t"$2"\t"tag_str"\t"top_tag"\t"$5 > out;
-	}	
-	}END{
-	for(tag in tag_freq){
-		print tag"\t"tag_freq[tag];
-	}
-	}' ${tag_freq} ${dingxiang_modified_tag} ${dingxiang_data_tag_type} > ${tag_freq_modified}
+	}' ${tag_freq} ${suffix_modified_tag} ${suffix_data_tag_type} > ${tag_freq_modified}
 }
 
 
@@ -162,88 +163,72 @@ function remove_black_tag
 	data_tag_type_filter_tags=$6
 	
 	awk -F '\t' '{
-    if(FILENAME==ARGV[1]){
-        obj_black[$1]=1;
-    }else if(FILENAME==ARGV[2]){
-        tag_black[$1]=1;
-    }else if(FILENAME==ARGV[3]){
-        type_index[$2]=$1;
-    }else if(FILENAME==ARGV[4]){
-        tag_freq[$1]=$2;
-    }else{
-        if($1 in obj_black){
-            next;
-        }
-        split($3,tags,",");
-        top_freq_tag=$4;
-        type=type_index[$5];
-        tag1="";
-        tag2="";
-        tag3="";
-        for(i in tags){
-            tag=tags[i];
-            # 取3个最高频的tag
-            if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
-                if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
-                    tag1=tag;
-                }else if(tag2=="" || tag_freq[tag]>tag_freq[tag2]){
-                    tag2=tag;
-                }else if(tag3=="" || tag_freq[tag]>tag_freq[tag3]){
-                    tag3=tag;
-                }
-            }
-        }
-        delete final_tags;
-        if(!(top_freq_tag in tag_black)){
-            final_tags[top_freq_tag];
-        }
-        ## 把 时尚搭配服饰 拆成  时尚搭配 和 服饰
-        if($5==4){
-            final_tags["时尚搭配"];
-            final_tags["服饰"];
-        }else if($5==2){   ## 把 风景/旅行 拆成 风景 和 旅行
-            final_tags["风景"];
-            final_tags["旅行"];
-        }else{
-            final_tags[type_index[$5]];
-        }
-        if(tag1!="")
-            final_tags[tag1];
-        if(tag2!="")
-            final_tags[tag2];
-        if(tag3!="")
-            final_tags[tag3];
-        tag_str="";
-        for( tag in final_tags){
-            if(tag_str=="")
-                tag_str=tag;
-            else
-                tag_str=tag_str","tag;
-        }
-        # objURL    fromURL     tags    top_freq_tag    type
-        print $1"\t"$2"\t"tag_str"\t"top_freq_tag"\t"type;
-    }
+		if(FILENAME==ARGV[1]){
+			obj_black[$1]=1;
+		}else if(FILENAME==ARGV[2]){
+			tag_black[$1]=1;
+		}else if(FILENAME==ARGV[3]){
+			type_index[$2]=$1;
+		}else if(FILENAME==ARGV[4]){
+			tag_freq[$1]=$2;
+		}else{
+			if($1 in obj_black){
+				next;
+			}
+			split($3,tags,",");
+			top_freq_tag=$4;
+			type=type_index[$5];
+			tag1="";
+			tag2="";
+			tag3="";
+			for(i in tags){
+				tag=tags[i];
+				# 取3个最高频的tag
+				if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
+					if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
+						tag1=tag;
+					}else if(tag2=="" || tag_freq[tag]>tag_freq[tag2]){
+						tag2=tag;
+					}else if(tag3=="" || tag_freq[tag]>tag_freq[tag3]){
+						tag3=tag;
+					}
+				}
+			}
+			delete final_tags;
+			if(!(top_freq_tag in tag_black)){
+				final_tags[top_freq_tag];
+			}
+			## 把 时尚搭配服饰 拆成  时尚搭配 和 服饰
+			if($5==4){
+				final_tags["时尚搭配"];
+				final_tags["服饰"];
+			}else if($5==2){   ## 把 风景/旅行 拆成 风景 和 旅行
+				final_tags["风景"];
+				final_tags["旅行"];
+			}else{
+				final_tags[type_index[$5]];
+			}
+			if(tag1!="")
+				final_tags[tag1];
+			if(tag2!="")
+				final_tags[tag2];
+			if(tag3!="")
+				final_tags[tag3];
+			tag_str="";
+			for( tag in final_tags){
+				if(tag_str=="")
+					tag_str=tag;
+				else
+					tag_str=tag_str","tag;
+			}
+			# objURL    fromURL     tags    top_freq_tag    type
+			print $1"\t"$2"\t"tag_str"\t"top_freq_tag"\t"type;
+		}
 	}' ${black_objs} ${black_tags} ${type_index} ${tag_freq_modified} ${data_tag_type} > ${data_tag_type_filter_tags};
 }
 
-### 6 delete * form objurl is tuhigh.com  Take care of this
-function remove_tuhigh {
-	file=$1;
-	tmp=$2;
-	error_out=$3
-	awk -F'\t' -v out="${error_out}" ' {
-		if (index($1, "tuhigh.com")) {
-#			print $0 > "./data/error_404";
-			print $0 > out; 
-		} else {
-			print $0;
-		}
-	}' ${file} > ${tmp}
-	mv ${file} ${file}.bak
-	mv ${tmp} ${file}
-}
 
-### 7  随机打散obj
+### 6  随机打散obj
 function rand_obj
 {
 	data_tag_type_filter_tags=$1
@@ -265,7 +250,7 @@ function rand_obj
 	fi;
 }
 
-### 8 merge the img local path
+### 7 merge the img local path
 function merge_path
 {
 	path_data=$1
@@ -273,15 +258,15 @@ function merge_path
 	output=$3
 	urls_to_download=$4
 	awk -F '\t' -v urls_to_download="${urls_to_download}" '{
-    if(FILENAME==ARGV[1]){
-        path[$2]=$1;
-    }else{
-        if($1 in path){
-            # objURL    tags    fromURL path  top_freq_tag   type
-            print $1"\t"$3"\t"$2"\t"path[$1]"\t"$4"\t"$5
-        }else{
-            print $0 > urls_to_download;
-        }
-    }
+		if(FILENAME==ARGV[1]){
+			path[$2]=$1;
+		}else{
+			if($1 in path){
+				# objURL    tags    fromURL path  top_freq_tag   type
+				print $1"\t"$3"\t"$2"\t"path[$1]"\t"$4"\t"$5
+			}else{
+				print $0 > urls_to_download;
+			}
+		}
 	}' ${path_data} ${output_without_path} > ${output}
 }
