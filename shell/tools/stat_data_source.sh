@@ -54,7 +54,10 @@ awk -F '\t' '{
         count[$NF]+=1;
 		key = $1"-"$NF;
 		domain_type[key]++;
-    }
+    } else if ($2 in used_objs) {
+		#print $0 > "used_out";
+		used++;
+	}
 }END{
     total=0;
 	for(type in count){
@@ -64,7 +67,7 @@ awk -F '\t' '{
 	for (key in domain_type) {
 		print key"\t"domain_type[key] | "sort -n -r -k1";
 	}
-	print "Total="total;
+	print "Total="total"\tUsed="used;
 }' ${type_index} ${used_objs} ${temp}.objs_info
 
 

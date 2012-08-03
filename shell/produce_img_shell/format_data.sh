@@ -107,7 +107,8 @@ function format_data
 
 ### 4 修改一些tag为另外的tag（根据PM的配置: conf/*_tag_modified)
 	echo "修改tag..."
-	tag_modify ${tag_freq} ${modified_tag} ${data_tag_type} ${temp}.tag_modified ${tag_freq}.tag_modified
+#	tag_modify ${tag_freq} ${modified_tag} ${data_tag_type} ${temp}.tag_modified ${tag_freq}.tag_modified
+	tag_modify ${tag_freq} ${modified_tag} ${data_tag_type} ${data_tag_type}.tag_modified ${tag_freq}.tag_modified
 	if [ ${?} -ne 0 ]
 	then
 		echo "修改tag失败!";
@@ -116,7 +117,8 @@ function format_data
 
 ### 5 去掉黑名单中的obj，去掉黑名单中的tag，限制tag数为5. 组成: 最高词频的3个 + 类型2/1个
 	echo "过滤tag黑名单，限制tag数为5个...";
-	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type} ${data_tag_type}.filter_tags;
+#	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type} ${data_tag_type}.filter_tags;
+	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type}.tag_modified ${data_tag_type}.filter_tags;
 	if [ ${?} -ne 0 ]
 	then
 		echo "过滤黑名单tag失败！";

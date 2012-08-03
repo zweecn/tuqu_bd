@@ -11,8 +11,8 @@
 ### 1. 清洗 tag，去掉没有tag 的obj，把tag中的空格替换为_，用,分割tag,去掉重复的tag,去掉空tag
 function clean_tag
 {
-    func_input=$1;
-    func_output=$2;
+    local func_input=$1;
+    local func_output=$2;
     awk -F '\t' '{
 		# objURL    fromURL     tags
 		if($1=="" || $2=="" || $3==""){
@@ -41,13 +41,14 @@ function clean_tag
 		if(tag_str!="")
 			print $1"\t"$2"\t"tag_str;
     }' ${func_input} > ${func_output}
+	echo -e "清洗tag后，输出文件为 ${func_output} `wc -l ${func_output} | cut -d ' ' -f 1` 行"
 }
 
 ### 2. 计算tag频率
 function cal_tag_freq
 {
-	data_clean_tag=$1
-	tag_freq=$2
+	local data_clean_tag=$1
+	local tag_freq=$2
 	awk -F '\t' '{
     	split($3,tags,",");
     	for(i in tags){
@@ -64,17 +65,17 @@ function cal_tag_freq
 ### 3. 确定pm的大分类
 function determine_tag_type
 {
-    func_input=$1;
-    func_tag_type_conf=$2;
-    func_output=$3;
-    func_conflict_output=$4;
+	echo -e "确定PM大分类的输入文件是 $1 `wc -l $1 | cut -d ' ' -f 1` 行"
+   	local func_input=$1;
+   	local func_tag_type_conf=$2;
+    local func_output=$3;
+    local func_conflict_output=$4;
     awk -F '\t' -v conflict_output="${func_conflict_output}"  '{
         if(FILENAME==ARGV[1]){
             tag_type[$1]=$2;
         }else if(FILENAME==ARGV[2]){
             tag_freq[$1]=$2;
         }else{
-##			print "手工："tag_freq["手工"];
             split($3,tags,",");
             delete types;
             for(i in tags){
@@ -110,17 +111,18 @@ function determine_tag_type
             }
         }
     }' ${func_tag_type_conf} ${tag_freq}  ${func_input} > ${func_output}
+	echo -e "确定PM大分类后，输出文件为 ${func_output} `wc -l ${func_output} | cut -d' ' -f 1` 行"
+	echo -e	"冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
 }
-
 
 ## 4 修改一些tag为另外的tag（根据PM的配置: conf/*_tag_modified)
 function tag_modify
 {
-	tag_freq=$1
-	suffix_modified_tag=$2
-	suffix_data_tag_type=$3
-	tag_modify_out=$4
-	tag_freq_modified=$5
+	local tag_freq=$1
+	local suffix_modified_tag=$2
+	local suffix_data_tag_type=$3
+	local tag_modify_out=$4
+	local tag_freq_modified=$5
 	awk -F '\t' -v out="${tag_modify_out}" '{
 		if(FILENAME==ARGV[1]){
 			tag_freq[$1]=$2;
@@ -144,23 +146,24 @@ function tag_modify
 			top_tag=($4 in suffix_tag_change)?suffix_tag_change[$4]:$4;
 			print $1"\t"$2"\t"tag_str"\t"top_tag"\t"$5 > out;
 		}	
-		}END{
+	} END {
 		for(tag in tag_freq){
-			print tag"\t"tag_freq[tag];
+				print tag"\t"tag_freq[tag];
 		}
 	}' ${tag_freq} ${suffix_modified_tag} ${suffix_data_tag_type} > ${tag_freq_modified}
+	echo -e "修改一些tag为另外的tag后，输出文件为 ${tag_modify_out} `wc -l ${tag_modify_out} | cut -d ' ' -f 1` 行"
 }
 
 
 ### 5 去掉黑名单中的obj，去掉黑名单中的tag，限制tag数为5. 组成: 最高词频的3个 + 类型2/1个
 function remove_black_tag 
 {
-	black_objs=$1
-	black_tags=$2
-	type_index=$3
-	tag_freq_modified=$4
-	data_tag_type=$5
-	data_tag_type_filter_tags=$6
+	local black_objs=$1
+	local black_tags=$2
+	local type_index=$3
+	local tag_freq_modified=$4
+	local data_tag_type=$5
+	local data_tag_type_filter_tags=$6
 	
 	awk -F '\t' '{
 		if(FILENAME==ARGV[1]){
@@ -225,18 +228,19 @@ function remove_black_tag
 			print $1"\t"$2"\t"tag_str"\t"top_freq_tag"\t"type;
 		}
 	}' ${black_objs} ${black_tags} ${type_index} ${tag_freq_modified} ${data_tag_type} > ${data_tag_type_filter_tags};
+	echo -e "去掉黑名单后输出文件为 ${data_tag_type_filter_tags} `wc -l ${data_tag_type_filter_tags} | cut -d' ' -f 1` 行"
 }
 
 
 ### 6  随机打散obj
 function rand_obj
 {
-	data_tag_type_filter_tags=$1
-	temp=$2
-	output_without_path=$3
+	local data_tag_type_filter_tags=$1
+	local temp=$2
+	local output_without_path=$3
 	awk -F '\t' '{
     	print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"rand();
-	}' ${data_tag_type_filter_tags} >${temp}.all_data.tag_type_rand;
+	}' ${data_tag_type_filter_tags} > ${temp}.all_data.tag_type_rand;
 	if [ ${?} -ne 0 ]
 	then
     	echo "生成随机数失败！";
@@ -248,15 +252,17 @@ function rand_obj
     	echo "对随机数排序[打散obj]失败!";
     	exit 1;
 	fi;
+
+	echo -e "打散后，输出文件为 ${output_without_path} `wc -l ${output_without_path} | cut -d ' ' -f 1` 行"
 }
 
 ### 7 merge the img local path
 function merge_path
 {
-	path_data=$1
-	output_without_path=$2
-	output=$3
-	urls_to_download=$4
+	local path_data=$1
+	local output_without_path=$2
+	local output=$3
+	local urls_to_download=$4
 	awk -F '\t' -v urls_to_download="${urls_to_download}" '{
 		if(FILENAME==ARGV[1]){
 			path[$2]=$1;
@@ -269,4 +275,6 @@ function merge_path
 			}
 		}
 	}' ${path_data} ${output_without_path} > ${output}
+
+	echo -e "合并本地路径后，输出文件为 ${output} `wc -l ${output} | cut -d ' ' -f 1` 行"
 }
