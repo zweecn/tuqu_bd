@@ -27,6 +27,7 @@ out=${temp}".dingxiang"
 site_out=${temp}."sites"
 
 data=data/swap/dingxiang_final_objs_data.without_path
+
 #if [ $# -ne 1 ]
 #then
 #    echo "useage: stat_data_source data_filename";

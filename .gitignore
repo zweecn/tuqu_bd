@@ -13,6 +13,9 @@
 
 .*.swp
 *.bak
+*.tar
+*.tar.gz
+*.gz
 
 conf
 data
