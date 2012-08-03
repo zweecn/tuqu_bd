@@ -2,16 +2,16 @@
 
 function format_data
 {
-
+	if [ $# -ne 1 ];then
+		echo "参数个数错误，正确的参数个数是1."
+		exit 1
+	fi
 	prefix=$1
 	echo -e "开始格式化数据 ${prefix}"
-#	res=`echo $prefix | awk '{if($1 == "dingxiang" || $1 == "mine") print 1; else print 0;}'` 
-#	echo $res	
-#	if [ res ] 
-#	then
-#		echo "参数错误. 正确的参数只能是1个: dingxiang 或者 mine ."
-#		exit 1
-#	fi
+	if [ $prefix != "dingxiang" -a $prefix != "mine" ]; then
+		echo "参数错误. 正确的参数只能是1个: dingxiang 或者 mine ."
+		exit 1
+	fi
 
 ###################################################################################
 #	基本数据目录
@@ -70,7 +70,7 @@ function format_data
 # 代码开始
 #
 
-	echo "source the function..."
+	echo "source format_func.sh ..."
 	source ./shell/produce_img_shell/format_func.sh
 	if [ ${?} -ne 0 ]
 	then

@@ -1,4 +1,103 @@
 tuqu_baidu
 ==========
 
-tuqu for baidu
+tuqu for baidu部署步骤:
+1. 拷贝所有文件到服务器机器
+2. 建立服务器本机与本机的ssh信任关系
+3. 修改./conf/remote_server为服务器地址
+4. 拷贝图片到data下，data下的图片目录为 data/res/46/*** ，执行一次./shell/produce_img_shell/replace_to_local_path.sh
+5. [目前不需要]执行一次./shell/produce_img_shell/before_auto_run.sh 此脚本是在 img@jx-apptest-img04.vm.baidu.com 机器上执行脚本后拷贝过来图片地址的映射关系. 目前不需要执行它。
+
+代码结构:
+
+Data_Produce |-- produce_data_control.sh
+					|-- normalize_dingxiang_data.sh
+					|-- normalize_mining_data.sh
+					|-- format_data.sh
+					|-- select_data.sh
+					|-- clear_html_char.sh
+					|-- scp_to_remote.sh
+Help		 |-- stat_data_source.sh
+
+
+之后每天定时执行./shell/produce_img_shell/produce_data_control.sh
+
+主控制流程:
+	./shell/produce_img_shell/produce_data_control.sh	(需要每天定时执行的脚本)
+整体输入: 
+	./data/input/objs_all					石玉明给的数据				格式: 以\t分割，第8字段为obj_url，第9字段为from_url，第13字段为tags
+	./data/input/gaoxiaoo_idsoo_kaixin001_laifu_taitaitang.out	后来定抓取的数据 格式: obj_url \t from_url \t title \t tags
+	./data/input/output.thumb				数据挖掘的输出数据			格式: 以\t分割，第2字段为obj_url，第6字段为from_url，第3字段为原始图片的tag
+	./data/input/objs_local_path			图片数据转换地址map			格式: path \t obj_url
+	./data/output/used_objs					已经使用的图片				格式: obj_url \t tags
+整体输出:
+	./data/output/data_for_tuqu/data_index.YYMMDD	输出到图趣的文本	格式: obj_url \t from_url \t tags
+	./data/output/used_objs							更新已经使用的图片	格式: obj_url \t tags
+
+配置文件说明:
+	./conf/dingxiang_tag_list		定向数据tag白名单			格式: tag \t type_int
+	./conf/dingxiang_tag_modified	定向数据tag词汇替换			格式: tag \t tag
+	./conf/mining_tag_list			挖掘数据tag白名单			格式: tag \t type_int
+	./conf/mining_tag_modified		挖掘数据tag替换				格式: tag \t tag
+	./conf/obj_black_list			图片数据URL黑名单			格式: obj_url
+	./conf/remote_server			远程服务器，				格式: user@ip:path [需要重新配置]
+	./conf/tag_black_list			tag黑名单列表				格式: tag
+	./conf/type_demand_amount		每天各类标签的需求的数量	格式: type \t amount
+	./conf/type_index				tag类型索引					格式: type \t type_int
+
+辅助文件:
+	./shell/stat_data_source.sh  ./data/final_objs_data.without_path
+统计各个类型下已经产生有多少可用的数据
+
+主控制流程(./shell/produce_img_shell/produce_data_control.sh)包括的主要流程说明:
+## 1 合作(定向)数据
+	./shell/produce_img_shell/normalize_dingxiang_data.sh;
+## 2 机器挖掘数据
+	./shell/produce_img_shell/normalize_mining_data.sh
+## 3 合并(包括去掉黑名单tag)
+	./shell/produce_img_shell/format_data.sh
+## 4. 选择数据
+	./shell/produce_img_shell/select_data.sh
+## 5 清除HTML字符
+	./shell/produce_img_shell/clear_html_char.sh
+## 6. 传输到远程机器
+	./shell/produce_img_shell/scp_to_remote.sh
+
+详细脚本功能说明（看起来较为混乱，参考代码文件）:
+1)	produce_data_control.sh：产生一天的数据，提供给PM做线上实验
+2)	normalize_dingxiang_data.sh: 格式化定向合作的数据
+	输入: input="./data/objs_all"; 【来源:是几个站点提交的数据，玉明给的。】
+	输出数据: output="./data/dingxiang_data_normalized
+3)	normalize_mining_data.sh: 格式化数据挖掘数据
+	输入: input="./data/output.thumb";
+	输出: output="./data/mining_data_normalized"
+4)	format_data.sh: 确定每个obj所属的大分类等
+	挖掘数据输入: mining_input="data/mining_data_normalized";
+	定向数据输入: dingxiang_input="data/dingxiang_data_normalized";
+	挖掘和合作分别配置的白名单(选择一个obj中需至少一个tag在白名单): 
+		mining_white_tag="conf/mining_tag_list";
+		dingxiang_white_tag="conf/dingxiang_tag_list";
+	修改标签为其它标签:
+		mining_modified_tag="conf/mining_tag_modified";
+		dingxiang_modified_tag="conf/dingxiang_tag_modified";
+	类型索引: type_index="conf/type_index";
+	计算出的tag频度: 
+		tag_freq="data/tag_freq";
+	mining_data_tag_type="./data/mining_data.tag_type";
+	dingxiang_data_tag_type="./data/dingxiang_data.tag_type";
+	data_tag_type="./data/all_data.tag_type";
+	black_objs="./conf/obj_black_list";
+	black_tags="./conf/tag_black_list";
+	图片路径数据: path_data="./data/objs_local_path";
+	输出: 
+		output="./data/final_objs_data";
+	temp="./data/temp/"`echo $0 | awk -F'[./]' '{ print $(NF - 1)}'`
+5)	select_data.sh: 从可用的obj中选出固定额度的资源给PM线上实验用。
+	输入: input="data/final_objs_data";
+	输出1：used_objs="data/used_objs";
+	输出2：output="data/data_for_tuqu/data_index."`date +%Y%m%d`;
+	PM需要的数据配置: type_demand_amount="conf/type_demand_amount";
+	temp="./data/temp/"`echo $0 | awk -F'[./]' '{ print $(NF - 1)}'` 
+6)	stat_data_source.sh： 辅助代码文件，统计各个类型下有多少可用的数据,
+	执行
+		shell_tmp/stat_data_source.sh data/temp/final_objs_data.without_path

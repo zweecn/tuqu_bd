@@ -12,6 +12,7 @@
 *.a
 
 .*.swp
+*.bak
 
 conf
 data
