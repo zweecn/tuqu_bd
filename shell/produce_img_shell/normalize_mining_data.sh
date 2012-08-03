@@ -32,7 +32,7 @@ today=`date +%Y%m%d`
 # 输入输出文件
 objs_mine=${input}"/output.thumb";
 input_other=${input}"/gaoxiaoo_idsoo_kaixin001_laifu_taitaitang.out";
-out=${swap}"/mining_data_normalized";
+out=${swap}"/mine_data_normalized";
 
 ###################################################################################
 # 代码开始
