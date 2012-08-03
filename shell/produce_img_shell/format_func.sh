@@ -70,7 +70,8 @@ function determine_tag_type
    	local func_tag_type_conf=$2;
     local func_output=$3;
     local func_conflict_output=$4;
-    awk -F '\t' -v conflict_output="${func_conflict_output}"  '{
+	local no_type_out=$5;
+    awk -F '\t' -v conflict_output="${func_conflict_output}" -v no_out="${no_type_out}" '{
         if(FILENAME==ARGV[1]){
             tag_type[$1]=$2;
         }else if(FILENAME==ARGV[2]){
@@ -102,17 +103,28 @@ function determine_tag_type
                 }
             }
             ##print $3"*"top_freq_tag"*"tag_type[top_freq_tag];
-            if(top_freq_tag!=""){
+			
+			if(conflict_mark==1){ #前后数据有10W条冲突的,有必要挖掘出来
+                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
+            } else if(top_freq_tag!=""){
                 # objURL    fromURL tags    top_freq_tag    type
                 print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
-            }
-            if(conflict_mark==1){ #前后数据有10W条冲突的,有必要挖掘出来
-                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output
-            }
+            } else {
+                print $0 > no_out;
+			}
+#            if(top_freq_tag!=""){
+#                # objURL    fromURL tags    top_freq_tag    type
+#                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
+#            } 
+#			 if(conflict_mark==1){ #前后数据有10W条冲突的,有必要挖掘出来
+#                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
+#			 }
+
         }
     }' ${func_tag_type_conf} ${tag_freq}  ${func_input} > ${func_output}
 	echo -e "确定PM大分类后，输出文件为 ${func_output} `wc -l ${func_output} | cut -d' ' -f 1` 行"
-	echo -e	"冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
+	echo -e	"	冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
+	echo -e	"	没被分类的为 ${no_type_out} `wc -l ${no_type_out} | cut -d' ' -f 1` 行"
 }
 
 ## 4 修改一些tag为另外的tag（根据PM的配置: conf/*_tag_modified)

@@ -98,7 +98,7 @@ function format_data
 
 ### 3. 确定pm的大分类
 	echo "确定PM大分类...";
-	determine_tag_type ${temp}.clean_tag ${white_tag} ${data_tag_type} ${temp}.type_conflict;
+	determine_tag_type ${temp}.clean_tag ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type
 	if [ ${?} -ne 0 ]
 	then
 		echo "确定obj所属的大分类失败！";
