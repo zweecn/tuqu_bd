@@ -96,7 +96,8 @@ function select_data
 		exit 1;
 	fi;
 
-	cp ${used_objs} ${used_objs_backup}
+#	cp ${used_objs} ${used_objs_backup}
+	cp ${temp}.used_objs ${used_objs_backup}
 	if [ ${?} -ne 0 ]
 	then
 		echo -e "±¸·Ý${used_objs}Ê§°Ü!"
