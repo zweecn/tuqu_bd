@@ -10,5 +10,5 @@ then
 fi
 
 format_data "dingxiang"
-format_data "mine"
+#format_data "mine"
 

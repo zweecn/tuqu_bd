@@ -7,7 +7,6 @@ function format_data
 		exit 1
 	fi
 	prefix=$1
-	echo -e "开始格式化数据 ${prefix}"
 	if [ $prefix != "dingxiang" -a $prefix != "mine" ]; then
 		echo "参数错误. 正确的参数只能是1个: dingxiang 或者 mine ."
 		exit 1
@@ -70,6 +69,7 @@ function format_data
 # 代码开始
 #
 
+	echo -e "开始格式化数据 ${prefix} ..."
 	echo "source format_func.sh ..."
 	source ./shell/produce_img_shell/format_func.sh
 	if [ ${?} -ne 0 ]

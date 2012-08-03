@@ -205,7 +205,7 @@ function remove_black_tag
 			}else if($5==2){   ## 把 风景/旅行 拆成 风景 和 旅行
 				final_tags["风景"];
 				final_tags["旅行"];
-			}else{
+			}else if($5!=0){
 				final_tags[type_index[$5]];
 			}
 			if(tag1!="")
