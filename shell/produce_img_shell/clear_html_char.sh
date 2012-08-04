@@ -34,4 +34,4 @@ do
 	sed -i -e "s#${htm}#${replace_char}#g" ${index_mine}
 done
 
-echo "HTML非法字符的替换完成，输出文件为 ${index}"
+echo "HTML非法字符的替换完成，输出文件为 ${index_mine} 和 ${index_dingxiang}"

@@ -82,34 +82,42 @@ echo "开始选择数据..."
 #	III.	 选择数据
 #
 # 	1. 选择定向数据
-echo "source select_data.sh ..."
-source ./shell/produce_img_shell/select_data.sh
+#echo "source select_data.sh ..."
+#source ./shell/produce_img_shell/select_data.sh
+#if [ $? -ne 0 ]
+#then
+#	echo "source failed."
+#	exit 1
+#fi
+#select_data "dingxiang"
+#if [ $? -ne 0 ]
+#then
+#	echo "选择定向数据失败."
+#	exit 1
+#fi
+#
+# 	2. 选择挖掘数据
+#echo "source select_data.sh ..."
+#source ./shell/produce_img_shell/select_data.sh
+#if [ $? -ne 0 ]
+#then
+#	echo "source failed."
+#	exit 1
+#fi
+#select_data "mine"
+#if [ $? -ne 0 ]
+#then
+#	echo "选择定向数据失败."
+#	exit 1
+#fi
+
+./shell/produce_img_shell/select_data.sh
 if [ $? -ne 0 ]
 then
-	echo "source failed."
-	exit 1
-fi
-select_data "dingxiang"
-if [ $? -ne 0 ]
-then
-	echo "选择定向数据失败."
+	echo "选择数据失败."
 	exit 1
 fi
 
-# 	2. 选择挖掘数据
-echo "source select_data.sh ..."
-source ./shell/produce_img_shell/select_data.sh
-if [ $? -ne 0 ]
-then
-	echo "source failed."
-	exit 1
-fi
-select_data "mine"
-if [ $? -ne 0 ]
-then
-	echo "选择定向数据失败."
-	exit 1
-fi
 
 echo "选择数据完成."
 date
