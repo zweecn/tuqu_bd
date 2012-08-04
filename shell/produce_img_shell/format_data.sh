@@ -64,10 +64,6 @@ function format_data
 # ÀàĞÍË÷Òı
 	type_index="conf/type_index"
 
-# ĞèÇóÊı¾İÎÄ¼ş
-	total_demand="conf/total_dingxiang_amount"
-	demand="conf/dingxiang_type_demand"  # ×¢Òâ£¬´ËÎÄ¼şÔÚ´Ë½Å±¾ÖĞÊÇĞ´ÈëµÄÎÄ¼ş
-
 #############################################################################
 # ´úÂë¿ªÊ¼
 #
@@ -128,7 +124,7 @@ function format_data
 		exit 1;
 	fi;
 
-### **.dingxiang ÔÚ·ÖÀàĞÅÏ¢ºóÔö¼ÓÃ¿¸öÕ¾µãĞÅÏ¢, ¸üĞÂÃ¿¸öÀà±ğĞèÒªµÄÍ¼Æ¬ÊıÁ¿µÄÅäÖÃÎÄ¼ş¡£×¢Òâ£¬ÕâÀï»á¸üĞÂconf/dingxiang_type_demand
+### **.dingxiang ÔÚ·ÖÀàĞÅÏ¢ºóÔö¼ÓÃ¿¸öÕ¾µãĞÅÏ¢, ¸üĞÂÃ¿¸öÀà±ğĞèÒªµÄÍ¼Æ¬ÊıÁ¿µÄÅäÖÃÎÄ¼
 	if [ ${prefix} = "dingxiang" ]; then
 		update_type_and_demand ${data_tag_type}.filter_tags ${temp}.filter_tags_tmp
 	fi
