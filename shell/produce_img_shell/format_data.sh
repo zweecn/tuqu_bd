@@ -64,6 +64,9 @@ function format_data
 # 类型索引
 	type_index="conf/type_index"
 
+# 需求数据文件
+	total_demand="conf/total_dingxiang_amount"
+	demand="conf/dingxiang_type_demand"  # 注意，此文件在此脚本中是写入的文件
 
 #############################################################################
 # 代码开始
@@ -79,8 +82,8 @@ function format_data
 	fi
 
 ### 1. 清洗 tag，去掉没有tag 的obj，把tag中的空格替换为_，用,分割tag,去掉重复的tag,去掉空tag
-	echo "清洗tag...";
-	clean_tag ${in} ${temp}.clean_tag;
+	echo "1. 清洗tag...";
+	clean_tag ${in} ${temp}.clean_tag ${temp}.no_tag;
 	if [ ${?} -ne 0 ]
 	then
 		echo "清洗tag失败！";
@@ -88,7 +91,7 @@ function format_data
 	fi;
 
 ### 2. 计算各个tag的freq
-	echo "计算tag频率...";
+	echo "2. 计算tag频率...";
 	cal_tag_freq ${temp}.clean_tag ${tag_freq}
 	if [ ${?} -ne 0 ]
 	then
@@ -97,7 +100,7 @@ function format_data
 	fi;
 
 ### 3. 确定pm的大分类
-	echo "确定PM大分类...";
+	echo "3. 确定PM大分类...";
 	determine_tag_type ${temp}.clean_tag ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type
 	if [ ${?} -ne 0 ]
 	then
@@ -106,7 +109,7 @@ function format_data
 	fi;
 
 ### 4 修改一些tag为另外的tag（根据PM的配置: conf/*_tag_modified)
-	echo "修改tag..."
+	echo "4. 修改tag..."
 #	tag_modify ${tag_freq} ${modified_tag} ${data_tag_type} ${temp}.tag_modified ${tag_freq}.tag_modified
 	tag_modify ${tag_freq} ${modified_tag} ${data_tag_type} ${data_tag_type}.tag_modified ${tag_freq}.tag_modified
 	if [ ${?} -ne 0 ]
@@ -116,7 +119,7 @@ function format_data
 	fi;
 
 ### 5 去掉黑名单中的obj，去掉黑名单中的tag，限制tag数为5. 组成: 最高词频的3个 + 类型2/1个
-	echo "过滤tag黑名单，限制tag数为5个...";
+	echo "5. 过滤tag黑名单，限制tag数为5个...";
 #	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type} ${data_tag_type}.filter_tags;
 	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type}.tag_modified ${data_tag_type}.filter_tags;
 	if [ ${?} -ne 0 ]
@@ -125,8 +128,14 @@ function format_data
 		exit 1;
 	fi;
 
+### **.dingxiang 在分类信息后增加每个站点信息, 更新每个类别需要的图片数量的配置文件。注意，这里会更新conf/dingxiang_type_demand
+	if [ ${prefix} = "dingxiang" ]; then
+		update_type_and_demand ${data_tag_type}.filter_tags ${temp}.filter_tags_tmp
+	fi
+
+
 ### 6  随机打散obj
-	echo "随机打散obj...";
+	echo "6. 随机打散obj...";
 	rand_obj ${data_tag_type}.filter_tags ${temp} ${out}.without_path
 	if [ ${?} -ne 0 ]
 	then
@@ -135,7 +144,7 @@ function format_data
 	fi;
 
 ### 7 把本地路径合 path 合并进去
-	echo "合并图片路径数据...";
+	echo "7. 合并图片路径数据...";
 	merge_path ${path_data} ${out}.without_path  ${out}  ${urls_to_download}
 	if [ ${?} -ne 0 ]
 	then

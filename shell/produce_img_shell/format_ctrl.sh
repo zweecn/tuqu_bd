@@ -1,6 +1,8 @@
 #!/bin/bash
 
 echo "source format_data.sh ..."
+
+source ./shell/produce_img_shell/format_func.sh
 source ./shell/produce_img_shell/format_data.sh
 
 if [ $? -ne 0 ]
