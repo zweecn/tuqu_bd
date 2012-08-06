@@ -6,7 +6,7 @@ function format_data
 		echo "参数个数错误，正确的参数个数是1."
 		exit 1
 	fi
-	prefix=$1
+	local prefix=$1
 	if [ $prefix != "dingxiang" -a $prefix != "mine" ]; then
 		echo "参数错误. 正确的参数只能是1个: dingxiang 或者 mine ."
 		exit 1
@@ -21,48 +21,48 @@ function format_data
 #	output			主程序的输出文件
 #	today			今天的日期，格式是类似于 "20120802"
 
-	filename=`echo $0 | awk -F'[./]' '{ print $(NF - 1)}'`
-	temp="./data/temp/"${filename}.${prefix}
-	input="./data/input"
-	swap="./data/swap/"${prefix}
-	output="./data/output"
-	today=`date +%Y%m%d`
+	local filename=`echo $0 | awk -F'[./]' '{ print $(NF - 1)}'`
+	local temp="./data/temp/"${filename}.${prefix}
+	local input="./data/input"
+	local swap="./data/swap/"${prefix}
+	local output="./data/output"
+	local today=`date +%Y%m%d`
 ###################################################################################
 
 #############################################################################
 # 数据文件
 # 图片路径数据
-	path_data=${input}"/objs_local_path"
+	local path_data=${input}"/objs_local_path"
 
 # 定向数据输入
-	in=${swap}"_data_normalized"
+	local in=${swap}"_data_normalized"
 
 # 本脚本的输出文件
-	out=${swap}"_final_objs_data"
+	local out=${swap}"_final_objs_data"
 
 #############################################################################
 # 临时文件
 # 计算出的tag频度
-	tag_freq=${temp}".tag_freq"
-	data_tag_type=${temp}".tag_type"
+	local tag_freq=${temp}".tag_freq"
+	local data_tag_type=${temp}".tag_type"
 
 # 还需要下载的图片，亦即本地没有的图片
-	urls_to_download=${temp}".urls_to_download"
+	local urls_to_download=${temp}".urls_to_download"
 
 #############################################################################
 # 配置文件
 # 白名单（选择一个obj中需至少一个tag在白名单）
-	white_tag="conf/"${prefix}"_tag_list"
+	local white_tag="conf/"${prefix}"_tag_list"
 
 # 黑名单(tag黑名单和obj黑名单)
-	black_objs="./conf/obj_black_list"
-	black_tags="./conf/tag_black_list"
+	local black_objs="./conf/obj_black_list"
+	local black_tags="./conf/tag_black_list"
 
 # 修改标签为其它标签 即 map
-	modified_tag="conf/"${prefix}"_tag_modified"
+	local modified_tag="conf/"${prefix}"_tag_modified"
 	
 # 类型索引
-	type_index="conf/type_index"
+	local type_index="conf/type_index"
 
 #############################################################################
 # 代码开始
@@ -150,3 +150,7 @@ function format_data
 
 	echo -e "格式化${suffix}数据完成，输出数据为 ${out}"
 }
+
+#format_data "dingxiang"
+#format_data "mine"
+

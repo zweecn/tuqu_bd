@@ -1,4 +1,48 @@
 #!/bin/bash
+function restore_used_objs
+{
+	echo "0. 开始按照前两天的used_objs恢复used_objs..."
+	local used_objs="data/input/used_objs"
+	local backup_dir="data/input/used_objs_backup"
+
+	local yesterday=`date -d"1 day ago" +"%Y%m%d"`
+	local two_days_ago=`date -d"2 day ago" +"%Y%m%d"`
+	local three_days_ago=`date -d"3 day ago" +"%Y%m%d"`
+
+	all_used=`ls ${backup_dir}/*${yesterday}*`
+	if [ $? -ne 0 ]; then
+		echo "昨天的used_objs不存在，尝试前天的."
+		all_used=`ls ${backup_dir}/*${two_days_ago}*`
+		if [ $? -ne 0 ]; then
+			all_used=`ls ${backup_dir}/*${three_days_ago}*`
+			if [ $? -ne 0 ]; then
+				echo "前天的used_objs不存在，尝试所有的."
+				all_used=`ls ${backup_dir}`
+				if [ $? -ne 0 ]; then
+					echo "没有备份的used_objs，失败!"
+					exit 1
+				fi
+			fi
+		fi
+	fi
+
+	echo "将从以下文件恢复used_objs:"
+	for used in ${all_used[@]}
+	do
+		echo "	" ${used}
+		awk -F '\t' '{
+			if (!mark[$1]) {
+				print;
+				mark[$1] = 1;
+			}
+		}' ${used} >  ${used_objs}.tmp
+	done
+
+	if [ -s ${used_objs}.tmp ]; then
+		mv ${used_objs}.tmp ${used_objs}
+	fi
+	echo "恢复used_objs完成."
+}
 
 function stat_data
 {
@@ -137,7 +181,8 @@ function select_data
 # 输入输出文件
 	local final_objs=${swap}"_final_objs_data"
 	local used_objs=${input}"/used_objs"
-	local used_objs_backup=${input}"/used_objs_backup/used_objs.${prefix}.after."${prefix}.${today}
+	local used_objs_backup=${input}"/used_objs_backup/used_objs.${prefix}.after."${today}
+	local used_objs_latest=${input}"/used_objs_backup/latest"
 	local out=${output}"/data_for_tuqu/data_index."${prefix}.${today}
 
 ####################################################################################
@@ -224,6 +269,25 @@ function select_data
 	echo -e "	选择数据完成，输出文件为 ${out}"
 }
 
+restore_used_objs
+if [ $? -ne 0 ]; then
+	echo "恢复used_objs失败!"
+fi
+
 stat_data 
+if [ $? -ne 0 ]; then
+	echo "恢复used_objs失败!"
+fi
+
 select_data "dingxiang"
+if [ $? -ne 0 ]; then
+	echo "选择定向数据失败."
+fi
+
+echo "开始选择挖掘数据..."
 select_data "mine"
+if [ $? -ne 0 ]; then
+	echo "挖掘数据选择失败."
+fi
+
+
