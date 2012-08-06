@@ -43,7 +43,9 @@ awk -F '\t' -v out="${output_dir}" '{
 			if (!(tags[i] in at)) {
 				continue;
 			}
-			print $1"\t"$1"\t"$2"\t"1 > out"/"tags[i]".txt";
+			if ($1 != "") {
+				print $1"\t"$1"\t"$2"\t"1 > out"/"tags[i]".txt";
+			}
 		}
 	}
 }' ${temp}.tag_cnt ${no_type_input}

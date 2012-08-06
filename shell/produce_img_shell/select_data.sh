@@ -269,25 +269,41 @@ function select_data
 	echo -e "	选择数据完成，输出文件为 ${out}"
 }
 
+echo ""
+echo "==============================================================================="
+date
+# 	1. 恢复used_objs
 restore_used_objs
 if [ $? -ne 0 ]; then
 	echo "恢复used_objs失败!"
 fi
 
+#	2. 统计数据
 stat_data 
 if [ $? -ne 0 ]; then
 	echo "恢复used_objs失败!"
 fi
 
+#	3. 选择定向数据
+echo "开始选择定向数据..."
 select_data "dingxiang"
 if [ $? -ne 0 ]; then
 	echo "选择定向数据失败."
 fi
 
+#	4. 选择挖掘数据
 echo "开始选择挖掘数据..."
 select_data "mine"
 if [ $? -ne 0 ]; then
 	echo "挖掘数据选择失败."
 fi
 
+# 	5. 替换HTML字符
+./shell/produce_img_shell/clear_html_char.sh 
+if [ ${?} -ne 0 ]
+then 
+    echo "替换HTML字符失败!";
+    exit 1;
+fi;
 
+date

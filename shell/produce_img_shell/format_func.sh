@@ -83,40 +83,86 @@ function determine_tag_type
             tag_freq[$1]=$2;
         }else{
             split($3,tags,",");
-            delete types;
-            for(i in tags){
-                tag=tags[i];
-                if(tag!="" && (tag in tag_type)){ # tag±ØÐëÔÚ°×Ãûµ¥ÖÐ
-                    a_type=tag_type[tag];
-                    if(a_type!="" &&  tag_freq[types[a_type]]<tag_freq[tag]){  ## Í¬Ò»ÀàÐÍÏÂµÄ×î¸ßÆµÂÊ
-                         ##print tag"*"a_type"*"tag_freq[types[a_type]]"*"tag_freq[tag];
-                         types[a_type]=tag;
-                    }
-                }
-            }
-            conflict_mark=0;
-            top_freq_tag=""; # ×î¸ßÆµÂÊµÄtag
-            for(type in types){
-                if(top_freq_tag=="")
-                    top_freq_tag=types[type];
-                else{
-                    #Ñ¡tagÆµÂÊ×î¸ßµÄÀàÐÍ×÷Îª¸ÃobjµÄÀàÐÍ
-                    tag=types[type];
-                    if(tag_freq[tag]>tag_freq[top_freq_tag])
-                        top_freq_tag=tag;
-                    conflict_mark=1;
-                }
-            }
-            ##print $3"*"top_freq_tag"*"tag_type[top_freq_tag];
 			
-			if(conflict_mark==1){ #Ç°ºóÊý¾ÝÓÐ10WÌõ³åÍ»µÄ,ÓÐ±ØÒªÍÚ¾ò³öÀ´
-                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
-            } else if(top_freq_tag!=""){
-                # objURL    fromURL tags    top_freq_tag    type
-                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
-            } else {
-                print $0 > no_out;
+			
+#######################################################################################################
+# ÐÞ¸ÄºóµÄ²ßÂÔ ¿ªÊ¼
+			delete type_cnt;
+			for (i in tags) {
+				tag = tags[i];
+				if (tag in tag_type) {
+					type = tag_type[tag];
+					type_cnt[type]++;
+				}
 			}
+			for (t in type_cnt) {
+				if (top_type == "") {
+					top_type = t;
+				} else {
+					if (type_cnt[top_type] < type_cnt[t]) {
+						top_type = t;
+					}
+				}
+			}
+		
+# 			ËùÓÐµÄtag¶¼Ã»³öÏÖÔÚtagÁÐ±íÖÐ£¬±»ÅÐ¶¨ÎªÎÞÀàÐÍ
+			if (top_type == "") {
+				print $0 > no_out;	
+			} else {
+				for (i in tags) {
+					tag = tags[i];
+					if (tag_type[tag] == tag_type[top_type]) {
+						if (top_type_tag == "") {
+							top_type_tag = tag;
+						} else {
+							if (tag_freq[top_type_tag] < tag_freq[tag]) {
+								top_type_tag = tag; 
+							}
+						}
+					}
+				}
+                print $1"\t"$2"\t"$3"\t"top_type_tag"\t"top_type;
+			}
+# ÐÞ¸ÄºóµÄ²ßÂÔ ½áÊø
+#######################################################################################################
+# Ô­À´µÄ²ßÂÔ ¿ªÊ¼
+#			 delete types;
+#            for(i in tags){
+#                tag=tags[i];
+#                if(tag!="" && (tag in tag_type)){ # tag±ØÐëÔÚ°×Ãûµ¥ÖÐ
+#                    a_type=tag_type[tag];
+#                    if(a_type!="" &&  tag_freq[types[a_type]]<tag_freq[tag]){  ## Í¬Ò»ÀàÐÍÏÂµÄ×î¸ßÆµÂÊ
+#                         ##print tag"*"a_type"*"tag_freq[types[a_type]]"*"tag_freq[tag];
+#                         types[a_type]=tag;
+#                    }
+#                }
+#            }
+#            conflict_mark=0;
+#            top_freq_tag=""; # ×î¸ßÆµÂÊµÄtag
+#            for(type in types){
+#                if(top_freq_tag=="")
+#                    top_freq_tag=types[type];
+#                else{
+#                    #Ñ¡tagÆµÂÊ×î¸ßµÄÀàÐÍ×÷Îª¸ÃobjµÄÀàÐÍ
+#                    tag=types[type];
+#                    if(tag_freq[tag]>tag_freq[top_freq_tag])
+#                        top_freq_tag=tag;
+#                    conflict_mark=1;
+#                }
+#            }
+#            ##print $3"*"top_freq_tag"*"tag_type[top_freq_tag];
+#			
+#			if(conflict_mark==1){ #Ç°ºóÊý¾ÝÓÐ10WÌõ³åÍ»µÄ,ÓÐ±ØÒªÍÚ¾ò³öÀ´
+#                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
+#            } else if(top_freq_tag!=""){
+#                # objURL    fromURL tags    top_freq_tag    type
+#                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
+#            } else {
+#                print $0 > no_out;
+#			}
+# 
+# Ô­À´µÄ²ßÂÔ ½áÊø
+#####################
 #            if(top_freq_tag!=""){
 #                # objURL    fromURL tags    top_freq_tag    type
 #                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
@@ -124,6 +170,7 @@ function determine_tag_type
 #			 if(conflict_mark==1){ #Ç°ºóÊý¾ÝÓÐ10WÌõ³åÍ»µÄ,ÓÐ±ØÒªÍÚ¾ò³öÀ´
 #                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
 #			 }
+#######################################################################################################
 
         }
     }' ${func_tag_type_conf} ${tag_freq}  ${func_input} > ${func_output}
@@ -173,7 +220,7 @@ function tag_modify
 }
 
 
-### 5 È¥µôºÚÃûµ¥ÖÐµÄobj£¬È¥µôºÚÃûµ¥ÖÐµÄtag£¬ÏÞÖÆtagÊýÎª5. ×é³É: ×î¸ß´ÊÆµµÄ3¸ö + ÀàÐÍ2/1¸ö
+### 5 È¥µôºÚÃûµ¥ÖÐµÄobj£¬È¥µôºÚÃûµ¥ÖÐµÄtag£¬ÏÞÖÆtagÊýÎª5. ×é³É: ×î¸ß´ÊÆµµÄ2¸ö + ÀàÐÍ1¸ö
 function remove_black_tag 
 {
 	local black_objs=$1
@@ -182,7 +229,8 @@ function remove_black_tag
 	local tag_freq_modified=$4
 	local data_tag_type=$5
 	local data_tag_type_filter_tags=$6
-	
+	local tag_type_list=$7
+
 	awk -F '\t' '{
 		if(FILENAME==ARGV[1]){
 			obj_black[$1]=1;
@@ -191,6 +239,8 @@ function remove_black_tag
 		}else if(FILENAME==ARGV[3]){
 			type_index[$2]=$1;
 		}else if(FILENAME==ARGV[4]){
+			tag_type_pm[$1] = $2;	
+		}else if(FILENAME==ARGV[5]){
 			tag_freq[$1]=$2;
 		}else{
 			if($1 in obj_black){
@@ -198,31 +248,114 @@ function remove_black_tag
 			}
 			split($3,tags,",");
 			top_freq_tag=$4;
+######################################################################			
+# ÐÞ¸Ä²ßÂÔºóµÄ°æ±¾
+			
+			delete save_tag;
+			if(!(top_freq_tag in tag_black)){
+				save_tag[top_freq_tag] = 1;	
+			}
+			len=0;
+			for (i in tags) {
+				tag = tags[i];
+				if (tag in tag_type_pm) {
+					save_tag[tag] = 1;	
+					len++;
+				}
+			}
+			
 			type=type_index[$5];
 			tag1="";
 			tag2="";
 			tag3="";
-			tag4="";
-			for(i in tags){
-				tag=tags[i];
-				# È¡4¸ö×î¸ßÆµµÄtag
-				if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
-					if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
-						tag1=tag;
-					}else if(tag2=="" || tag_freq[tag]>tag_freq[tag2]){
-						tag2=tag;
-					}else if(tag3=="" || tag_freq[tag]>tag_freq[tag3]){
-						tag3=tag;
-					}else if(tag4=="" || tag_freq[tag]>tag_freq[tag4]){
-						tag4=tag;	
+			
+			if (len == 0) {
+				for(i in tags){
+					tag=tags[i];
+					# È¡3¸ö×î¸ßÆµµÄtag
+					if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
+						if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
+							tag1=tag;
+						}else if(tag2=="" || tag_freq[tag]>tag_freq[tag2]){
+							tag2=tag;
+						}else if(tag3=="" || tag_freq[tag]>tag_freq[tag3]){
+							tag3=tag;
+						}
+					}
+				}
+			} else if (len == 1) {
+				for(i in tags){
+					tag=tags[i];
+					# È¡2¸ö×î¸ßÆµµÄtag
+					if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
+						if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
+							tag1=tag;
+						}else if(tag2=="" || tag_freq[tag]>tag_freq[tag2]){
+							tag2=tag;
+						}
+					}
+				}
+			} else if (len == 2) {
+				for(i in tags){
+					tag=tags[i];
+					# È¡1¸ö×î¸ßÆµµÄtag
+					if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
+						if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
+							tag1=tag;
+						}
+					}
+				}
+			} else if (len >= 3) {
+				for(i in save_tag){
+					tag=i;
+					if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
+						if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
+							tag1=tag;
+						}else if(tag2=="" || tag_freq[tag]>tag_freq[tag2]){
+							tag2=tag;
+						}else if(tag3=="" || tag_freq[tag]>tag_freq[tag3]){
+							tag3=tag;
+						}
+
 					}
 				}
 			}
+	
 			delete final_tags;
-			if(!(top_freq_tag in tag_black)){
-				final_tags[top_freq_tag];
+			if (len < 3) {
+				for (i in save_tag) {
+					final_tags[i] = 1;
+				}
 			}
-
+#			
+######################################################################			
+#	ÐÞ¸Ä²ßÂÔÇ°µÄ°æ±¾
+#			
+#			type=type_index[$5];
+#			tag1="";
+#			tag2="";
+#			tag3="";
+#			tag4="";
+#			for(i in tags){
+#				tag=tags[i];
+#				# È¡4¸ö×î¸ßÆµµÄtag
+#				if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
+#					if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
+#						tag1=tag;
+#					}else if(tag2=="" || tag_freq[tag]>tag_freq[tag2]){
+#						tag2=tag;
+#					}else if(tag3=="" || tag_freq[tag]>tag_freq[tag3]){
+#						tag3=tag;
+#					}else if(tag4=="" || tag_freq[tag]>tag_freq[tag4]){
+#						tag4=tag;	
+#					}
+#				}
+#			}
+#			delete final_tags;
+#			if(!(top_freq_tag in tag_black)){
+#				final_tags[top_freq_tag];
+#			}
+#
 ######################################################################			
 ## 			°Ñ Ê±ÉÐ´îÅä·þÊÎ ²ð³É  Ê±ÉÐ´îÅä ºÍ ·þÊÎ
 #			if($5==4){
@@ -239,15 +372,15 @@ function remove_black_tag
 			if($5!=0){
 				final_tags[type_index[$5]];
 			}
-
+			
 			if(tag1!="")
 				final_tags[tag1];
 			if(tag2!="")
 				final_tags[tag2];
 			if(tag3!="")
 				final_tags[tag3];
-			if(tag4!="")
-				final_tags[tag4];
+#			if(tag4!="")
+#				final_tags[tag4];
 			tag_str="";
 			for( tag in final_tags){
 				if(tag_str=="")
@@ -258,11 +391,11 @@ function remove_black_tag
 			# objURL    fromURL     tags    top_freq_tag    type
 			print $1"\t"$2"\t"tag_str"\t"top_freq_tag"\t"type;
 		}
-	}' ${black_objs} ${black_tags} ${type_index} ${tag_freq_modified} ${data_tag_type} > ${data_tag_type_filter_tags};
+	}' ${black_objs} ${black_tags} ${type_index} ${tag_type_list} ${tag_freq_modified} ${data_tag_type} > ${data_tag_type_filter_tags};
 	echo -e "	È¥µôºÚÃûµ¥ºóÊä³öÎÄ¼þÎª ${data_tag_type_filter_tags} `wc -l ${data_tag_type_filter_tags} | cut -d' ' -f 1` ÐÐ"
 }
 
-### **.dingxiang ÔÚ·ÖÀàÐÅÏ¢ºóÔö¼ÓÃ¿¸öÕ¾µãÐÅÏ¢, ¸üÐÂÃ¿¸öÀà±ðÐèÒªµÄÍ¼Æ¬ÊýÁ¿µÄÅäÖÃÎÄ¼
+### **.dingxiang ÔÚ·ÖÀàÐÅÏ¢ºóÔö¼ÓÃ¿¸öÕ¾µãÐÅÏ¢, ¸üÐÂÃ¿¸öÀà±ðÐèÒªµÄÍ¼Æ¬ÊýÁ¿µÄÅäÖÃ
 function update_type_and_demand
 {
 	local inout=$1
@@ -331,4 +464,5 @@ function merge_path
 	}' ${path_data} ${output_without_path} > ${output}
 
 	echo -e "	ºÏ²¢±¾µØÂ·¾¶ºó£¬Êä³öÎÄ¼þÎª ${output} `wc -l ${output} | cut -d ' ' -f 1` ÐÐ"
+	echo -e "	»¹ÐèÒªÏÂÔØµÄÍ¼Æ¬£¬Êä³öÎÄ¼þÎª ${urls_to_download} `wc -l ${urls_to_download} | cut -d ' ' -f 1` ÐÐ "
 }

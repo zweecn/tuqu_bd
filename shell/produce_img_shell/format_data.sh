@@ -117,14 +117,14 @@ function format_data
 ### 5 È¥µôºÚÃûµ¥ÖĞµÄobj£¬È¥µôºÚÃûµ¥ÖĞµÄtag£¬ÏŞÖÆtagÊıÎª5. ×é³É: ×î¸ß´ÊÆµµÄ3¸ö + ÀàĞÍ2/1¸ö
 	echo "5. ¹ıÂËtagºÚÃûµ¥£¬ÏŞÖÆtagÊıÎª5¸ö...";
 #	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type} ${data_tag_type}.filter_tags;
-	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type}.tag_modified ${data_tag_type}.filter_tags;
+	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type}.tag_modified ${data_tag_type}.filter_tags ${white_tag}
 	if [ ${?} -ne 0 ]
 	then
 		echo "¹ıÂËºÚÃûµ¥tagÊ§°Ü£¡";
 		exit 1;
 	fi;
 
-### **.dingxiang ÔÚ·ÖÀàĞÅÏ¢ºóÔö¼ÓÃ¿¸öÕ¾µãĞÅÏ¢, ¸üĞÂÃ¿¸öÀà±ğĞèÒªµÄÍ¼Æ¬ÊıÁ¿µÄÅäÖÃÎÄ¼
+### **.dingxiang ÔÚ·ÖÀàĞÅÏ¢ºóÔö¼ÓÃ¿¸öÕ¾µãĞÅÏ¢, ¸üĞÂÃ¿¸öÀà±ğĞèÒªµÄÍ¼Æ¬ÊıÁ¿µÄÅäÖ
 	if [ ${prefix} = "dingxiang" ]; then
 		update_type_and_demand ${data_tag_type}.filter_tags ${temp}.filter_tags_tmp
 	fi
