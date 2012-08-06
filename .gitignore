@@ -16,7 +16,9 @@
 *.tar
 *.tar.gz
 *.gz
+*.log
 
+log
 conf
 data
 tuqu_dev/data
