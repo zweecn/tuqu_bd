@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# 统计已经下载的数据情况
+
 filename=`echo $0 | awk -F'[./]' '{ print $(NF - 1)}'`
 temp="./data/temp/"${filename}
 input="./data/input"

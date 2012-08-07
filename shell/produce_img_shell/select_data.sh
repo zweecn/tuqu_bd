@@ -188,11 +188,9 @@ function stat_data
 			split(t, arr, "-");
 
 #			限制每个大类上传的数据不超过需求	
-			if (sum_dingxiang_type[arr[2]] + need_t > type_demands[arr[2]]) {
-				need_t = type_demands[arr[2]] - sum_dingxiang_type[arr[2]];	
-			} else {
-				sum_dingxiang_type[arr[2]] += need_t;
-			}
+			if (dx_types[arr[2]] + need_t > type_demands[arr[2]]) {
+				need_t = type_demands[arr[2]] - dx_types[arr[2]];	
+			} 
 
 #			if (need_t > type_demands[arr[2]]) {
 #				need_t = type_demands[arr[2]];

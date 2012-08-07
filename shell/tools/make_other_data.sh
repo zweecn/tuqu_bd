@@ -1,5 +1,11 @@
 #!/bin/bash
 
+./shell/tools/merge_all_data.sh
+if [ $? -ne 0 ]; then
+	echo "合并filan_objs_data失败."
+	exit 1
+fi
+
 ####################################################################################
 #	基本数据目录
 # 	filename 		程序正在执行的脚本文件名
