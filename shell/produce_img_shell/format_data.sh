@@ -141,7 +141,7 @@ function format_data
 
 ### 7 把本地路径合 path 合并进去
 	echo "7. 合并图片路径数据...";
-	merge_path ${path_data} ${out}.without_path  ${out}  ${urls_to_download}
+	merge_path ${path_data} ${out}.without_path  ${out}  ${urls_to_download} ${black_objs}
 	if [ ${?} -ne 0 ]
 	then
 		echo "合并图片路径数据失败！";

@@ -1,4 +1,85 @@
 #!/bin/bash
+function check_file_exist
+{
+	local temp="./data/temp/"
+	if [ ! -d ${temp} ]; then
+		echo -e "${temp} dir does not exist"
+		exit 1
+	fi
+	
+	local input="./data/input/"
+	if [ ! -d ${input} ]; then
+		echo -e "${input} dir does not exist "
+		exit 1
+	fi
+	
+	local swap="./data/swap/"	
+	if [ ! -d ${swap} ]; then
+		echo -e "${swap} dir does not exist "
+		exit 1
+	fi
+	
+	local output="./data/output/"
+	if [ ! -d ${output} ]; then
+		echo -e "${output} dir does not exist"
+		exit 1
+	fi
+	
+	local backup_dir="data/input/used_objs_backup"
+	if [ ! -d ${backup_dir} ]; then
+		echo -e "${backup_dir} dir does not exist"
+		exit 1
+	fi
+
+	local out=${output}"/data_for_tuqu/"
+	if [ ! -d ${out} ]; then
+		echo -e "${out} dir does not exist"
+		exit 1
+	fi
+
+	local dingxiang_final_objs=${swap}"dingxiang_final_objs_data"
+	if [ ! -f ${dingxiang_final_objs} ]; then
+		echo -e "${dingxiang_final_objs} file does not exist"
+		exit 1
+	fi
+
+	local mine_final_objs=${swap}"mine_final_objs_data"
+	if [ ! -f ${mine_final_objs} ]; then
+		echo -e "${mine_final_objs} file does not exist"
+		exit 1
+	fi
+
+	local used_objs=${input}"/used_objs"	
+	if [ ! -f ${used_objs} ]; then
+		echo -e "${used_objs} file does not exist"
+		exit 1
+	fi
+
+	local total_type_demand="conf/total_type_demand"
+	if [ ! -f ${total_type_demand} ]; then
+		echo -e "${total_type_demand} file does not exist"
+		exit 1
+	fi
+
+	local dx_vs_mine="conf/dingxiang_vs_mine"
+	if [ ! -f ${dx_vs_mine} ]; then
+		echo -e "${dx_vs_mine} file does not exist"
+		exit 1
+	fi
+
+	local dingxiang_type_demand_amount="conf/dingxiang_type_demand"
+	if [ ! -f ${dingxiang_type_demand_amount} ]; then
+		echo -e "${dingxiang_type_demand_amount} file does not exist"
+		exit 1
+	fi
+
+	local mine_type_demand_amount="conf/mine_type_demand"
+	if [ ! -f ${mine_type_demand_amount} ]; then
+		echo -e "${mine_type_demand_amount} file does not exist"
+		exit 1
+	fi
+}
+
 function restore_used_objs
 {
 	echo "0. 开始按照前两天的used_objs恢复used_objs..."
@@ -64,20 +145,6 @@ function stat_data
 	local dingxiang_type_demand_amount="conf/dingxiang_type_demand"
 	local mine_type_demand_amount="conf/mine_type_demand"
 	
-#	awk -F '[\t:]' -v xd="${tmp}.dingxiang.need" -v mi="${tmp}.mine.need" '{
-#		if (FILENAME==ARGV[1]) {
-#			type_demands[$1]=$2;
-#			total_needed+=$2;
-#		} else if (FILENAME==ARGV[2]) {
-#			dx_cnt = total_needed * $1 / ($1+$2);
-#			mine_cnt = total_needed - dx_cnt;
-#			print dx_cnt"\t"mine_cnt;
-#			print dx_cnt > xd;
-#			print mine_cnt > mi;
-#		}
-#
-#	}' ${total_type_demand} ${dx_vs_mine} > ${tmp}.demand
-	
 	echo -e "1. 开始统计数据和按比例生成需要数据..."
 	awk -F '[\t]' -v dx_d="${dingxiang_type_demand_amount}" -v mi_d="${mine_type_demand_amount}" -v dx_null_type="${temp}.dingxiang_null_type" -v mi_null_type="${temp}.mine_null_type" '{
 		
@@ -114,9 +181,19 @@ function stat_data
 		print "\t库中还有点图片数据为:";
 		print "\t-------------------------------------------------"
 		for (t in dx_cnt) {
-#			need_t = dx_need/dx_total*dx_cnt[t];
 			need_t = dx_need*dx_cnt[t]/dx_total;
+			if (need_t != 0 && dingxiang_min_day < dx_cnt[t] / need_t) {
+				dingxiang_min_day = dx_cnt[t] / need_t;
+			}
 			split(t, arr, "-");
+
+#			限制每个大类上传的数据不超过需求	
+			if (sum_dingxiang_type[arr[2]] + need_t > type_demands[arr[2]]) {
+				need_t = type_demands[arr[2]] - sum_dingxiang_type[arr[2]];	
+			} else {
+				sum_dingxiang_type[arr[2]] += need_t;
+			}
+
 #			if (need_t > type_demands[arr[2]]) {
 #				need_t = type_demands[arr[2]];
 #			}
@@ -134,10 +211,14 @@ function stat_data
 			if (need_t < 0) {
 				need_t = 0;
 			}
+			if (need_t != 0 && mine_min_day < mi_cnt[t] / need_t) {
+				mine_min_day = mi_cnt[t] / need_t;
+			}
 			printf("%s\t%d\t%d\n", t, need_t, mi_cnt[t]) > mi_d;
 			printf("\t%s\t%d\n", t, mi_cnt[t]);
 		}
 		print "\t-------------------------------------------------"
+		print "定向数据大约还可以支撑 " dingxiang_min_day " 天，挖掘数据大约还可以支撑 " mine_min_day " 天"
 		if (dx_total < dx_need || mi_total < mi_need) {
 			print "\t警告:库中数据量不足，后续无法选择. 定向剩余/定向需求=" dx_total"/"dx_need " 挖掘剩余/挖掘需求=" mi_total"/"mi_need;
 		}
@@ -182,7 +263,6 @@ function select_data
 	local final_objs=${swap}"_final_objs_data"
 	local used_objs=${input}"/used_objs"
 	local used_objs_backup=${input}"/used_objs_backup/used_objs.${prefix}.after."${today}
-	local used_objs_latest=${input}"/used_objs_backup/latest"
 	local out=${output}"/data_for_tuqu/data_index."${prefix}.${today}
 
 ####################################################################################
@@ -272,6 +352,14 @@ function select_data
 echo ""
 echo "==============================================================================="
 date
+
+# 	0. 检查文件是否存在
+check_file_exist
+if [ $? -ne 0 ]; then 
+	echo "缺少配置文件或者输入文件，请检查conf和data目录是否正常."
+	exit 1
+fi
+
 # 	1. 恢复used_objs
 restore_used_objs
 if [ $? -ne 0 ]; then

@@ -1,8 +1,11 @@
 #!/bin/bash
 filename=`echo $0 | awk -F'[./]' '{ print $(NF - 1)}'`
 temp="./data/temp/"${filename}
-no_type_input="./data/temp/produce_data_control.mine.no_type"
+#no_type_input="./data/temp/produce_data_control.dingxiang.no_type"
+no_type_input="./data/temp/pre_online.dingxiang.no_type"
 output_dir="./data/temp/pinggu"
+black_obj="./conf/obj_black_list"
+already_pinggu="./conf/already_pingu"
 
 rm -rf ${output_dir}
 mkdir -p ${output_dir}
@@ -22,7 +25,7 @@ awk -F '\t' '{
 
 } END {
 	for (tag in cnt) {
-		if (cnt[tag] >= 100) {
+		if (cnt[tag] >= 200) {
 			print tag"\t"cnt[tag];
 		}
 	}
@@ -32,6 +35,10 @@ awk -F '\t' -v out="${output_dir}" '{
 #	print $1"\t"$1"\t"$2"\t"1;
 	if (FILENAME == ARGV[1]) {
 		at[$1] = 1;	
+	} else if (FILENAME == ARGV[2]) {
+		black_obj[$1] = 1;
+	} else if (FILENAME == ARGV[3]) {
+		already[$1] = 1;
 	} else {
 		gsub(/\//, ",", $3);
 		gsub(/\./, "", $3);
@@ -40,15 +47,38 @@ awk -F '\t' -v out="${output_dir}" '{
 			if (tags[i] == "") {
 				continue;
 			}
+			if (tags[i] in already) {
+				next;
+			}
 			if (!(tags[i] in at)) {
 				continue;
+			}
+			if ($1 in black_obj) {
+				continue;
+			}
+			if (index($2, "fengniao.com")) {
+				next;
 			}
 			if ($1 != "") {
 				print $1"\t"$1"\t"$2"\t"1 > out"/"tags[i]".txt";
 			}
 		}
 	}
-}' ${temp}.tag_cnt ${no_type_input}
+}' ${temp}.tag_cnt ${black_obj} ${already_pinggu} ${no_type_input}
+
+all_tag_file=`ls ${output_dir}`
+cat ${output_dir}/* > ${temp}.all_pinggu
+
+awk -F '\t' '{
+	if (!mark[$1]) {
+		mark[$1] = 1;
+		print;
+	}
+} END {
+}' ${temp}.all_pinggu > ${temp}.all_pinggu.uniq	
+
+echo -e "一共 输出到 ${temp}.all_pinggu.uniq 文件，共 `wc -l ${temp}.all_pinggu.uniq | cut -d ' ' -f 1` 条"
+echo -e "需要评估的tag输出到 ${output_dir}"
 
 echo "Finish generated."
 

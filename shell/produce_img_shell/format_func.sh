@@ -93,6 +93,8 @@ function determine_tag_type
 				if (tag in tag_type) {
 					type = tag_type[tag];
 					type_cnt[type]++;
+				} else {
+#					print tag > no_out;
 				}
 			}
 			for (t in type_cnt) {
@@ -175,7 +177,7 @@ function determine_tag_type
         }
     }' ${func_tag_type_conf} ${tag_freq}  ${func_input} > ${func_output}
 	echo -e "	确定PM大分类后，输出文件为 ${func_output} `wc -l ${func_output} | cut -d' ' -f 1` 行"
-	echo -e	"	冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
+#	echo -e	"	冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
 	echo -e	"	没被分类的为 ${no_type_out} `wc -l ${no_type_out} | cut -d' ' -f 1` 行"
 }
 
@@ -450,10 +452,16 @@ function merge_path
 	local output_without_path=$2
 	local output=$3
 	local urls_to_download=$4
+	local black_objs=$5
 	awk -F '\t' -v urls_to_download="${urls_to_download}" '{
 		if(FILENAME==ARGV[1]){
+			blackobj[$1] = 1;
+		} else if(FILENAME==ARGV[2]){
 			path[$2]=$1;
 		}else{
+			if ($1 in black_objs) {
+				next;
+			}
 			if($1 in path){
 				# objURL    tags    fromURL path  top_freq_tag   type
 				print $1"\t"$3"\t"$2"\t"path[$1]"\t"$4"\t"$5
@@ -461,7 +469,7 @@ function merge_path
 				print $0 > urls_to_download;
 			}
 		}
-	}' ${path_data} ${output_without_path} > ${output}
+	}' ${black_objs} ${path_data} ${output_without_path} > ${output}
 
 	echo -e "	合并本地路径后，输出文件为 ${output} `wc -l ${output} | cut -d ' ' -f 1` 行"
 	echo -e "	还需要下载的图片，输出文件为 ${urls_to_download} `wc -l ${urls_to_download} | cut -d ' ' -f 1` 行 "

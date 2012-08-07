@@ -19,7 +19,7 @@ today=`date +%Y%m%d`
 
 final_objs=${swap}"/merge_final_objs_data"
 need="conf/img.need"
-used_obj=${output}"/used_objs"
+used_obj=${input}"/used_objs"
 out=${swap}"/other_4_base_data"
 lack=${temp}".lack"
 
