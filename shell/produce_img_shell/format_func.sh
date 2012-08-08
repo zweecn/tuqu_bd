@@ -68,67 +68,22 @@ function cal_tag_freq
 }
 
 ### 3. 确定pm的大分类
-function determine_tag_type
-{
-	echo -e "	确定PM大分类的输入文件是 $1 `wc -l $1 | cut -d ' ' -f 1` 行"
-   	local func_input=$1;
-   	local func_tag_type_conf=$2;
-    local func_output=$3;
-    local func_conflict_output=$4;
-	local no_type_out=$5;
-    awk -F '\t' -v conflict_output="${func_conflict_output}" -v no_out="${no_type_out}" '{
-        if(FILENAME==ARGV[1]){
-            tag_type[$1]=$2;
-        }else if(FILENAME==ARGV[2]){
-            tag_freq[$1]=$2;
-        }else{
-            split($3,tags,",");
-			
-			
-#######################################################################################################
-# 修改后的策略 开始
-			delete type_cnt;
-			for (i in tags) {
-				tag = tags[i];
-				if (tag in tag_type) {
-					type = tag_type[tag];
-					type_cnt[type]++;
-				} else {
-#					print tag > no_out;
-				}
-			}
-			for (t in type_cnt) {
-				if (top_type == "") {
-					top_type = t;
-				} else {
-					if (type_cnt[top_type] < type_cnt[t]) {
-						top_type = t;
-					}
-				}
-			}
-		
-# 			所有的tag都没出现在tag列表中，被判定为无类型
-			if (top_type == "") {
-				print $0 > no_out;	
-			} else {
-				for (i in tags) {
-					tag = tags[i];
-					if (tag_type[tag] == tag_type[top_type]) {
-						if (top_type_tag == "") {
-							top_type_tag = tag;
-						} else {
-							if (tag_freq[top_type_tag] < tag_freq[tag]) {
-								top_type_tag = tag; 
-							}
-						}
-					}
-				}
-                print $1"\t"$2"\t"$3"\t"top_type_tag"\t"top_type;
-			}
-# 修改后的策略 结束
-#######################################################################################################
-# 原来的策略 开始
-#			 delete types;
+#function determine_tag_type
+#{
+#	echo -e "	确定PM大分类的输入文件是 $1 `wc -l $1 | cut -d ' ' -f 1` 行"
+#   	local func_input=$1;
+#   	local func_tag_type_conf=$2;
+#    local func_output=$3;
+#    local func_conflict_output=$4;
+#	local no_type_out=$5;
+#    awk -F '\t' -v conflict_output="${func_conflict_output}" -v no_out="${no_type_out}" '{
+#        if(FILENAME==ARGV[1]){
+#            tag_type[$1]=$2;
+#        }else if(FILENAME==ARGV[2]){
+#            tag_freq[$1]=$2;
+#        }else{
+#            split($3,tags,",");
+#			delete types;
 #            for(i in tags){
 #                tag=tags[i];
 #                if(tag!="" && (tag in tag_type)){ # tag必须在白名单中
@@ -162,23 +117,107 @@ function determine_tag_type
 #            } else {
 #                print $0 > no_out;
 #			}
-# 
-# 原来的策略 结束
-#####################
-#            if(top_freq_tag!=""){
-#                # objURL    fromURL tags    top_freq_tag    type
-#                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
-#            } 
-#			 if(conflict_mark==1){ #前后数据有10W条冲突的,有必要挖掘出来
-#                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
-#			 }
-#######################################################################################################
-
-        }
-    }' ${func_tag_type_conf} ${tag_freq}  ${func_input} > ${func_output}
-	echo -e "	确定PM大分类后，输出文件为 ${func_output} `wc -l ${func_output} | cut -d' ' -f 1` 行"
+######################
+##            if(top_freq_tag!=""){
+##                # objURL    fromURL tags    top_freq_tag    type
+##                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
+##            } 
+##			 if(conflict_mark==1){ #前后数据有10W条冲突的,有必要挖掘出来
+##                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
+##			 }
+########################################################################################################
+#
+#        }
+#    }' ${func_tag_type_conf} ${tag_freq}  ${func_input} > ${func_output}
+#	echo -e "	确定PM大分类后，输出文件为 ${func_output} `wc -l ${func_output} | cut -d' ' -f 1` 行"
 #	echo -e	"	冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
+#	echo -e	"	没被分类的为 ${no_type_out} `wc -l ${no_type_out} | cut -d' ' -f 1` 行"
+#}
+
+function determine_tag_type
+{
+	echo -e "	确定PM大分类的输入文件是 $1 `wc -l $1 | cut -d ' ' -f 1` 行"
+   	local func_input=$1;
+   	local func_tag_type_conf=$2;
+    local func_output=$3;
+    local func_conflict_output=$4;
+	local no_type_out=$5;
+	local pm_stat_tags=$6;
+	local stat_tag=$7; 
+	awk -F '\t' -v stat_tag_out="${stat_tag}" -v conflict_output="${func_conflict_output}" -v no_out="${no_type_out}" '{
+        if (FILENAME == ARGV[1]) {
+			pm_tag_cnt[$1] = $2;	
+			total_tag_cnt[$1] = 0;
+			conflict_tag_cnt[$1] = 0;
+			no_tag_cnt[$1] = 0;
+			tag_left_cnt[$1] = 0;
+		}else if(FILENAME==ARGV[2]){
+            tag_type[$1]=$2;
+        }else if(FILENAME==ARGV[3]){
+            tag_freq[$1]=$2;
+        }else{
+			split($3,tags,",");
+			delete types;
+            for(i in tags){
+                tag=tags[i];
+                if(tag!="" && (tag in tag_type)){ # tag必须在白名单中
+                    a_type=tag_type[tag];
+                    if(a_type!="" &&  tag_freq[types[a_type]]<tag_freq[tag]){  ## 同一类型下的最高频率
+                         ##print tag"*"a_type"*"tag_freq[types[a_type]]"*"tag_freq[tag];
+                         types[a_type]=tag;
+                    }
+                }
+            }
+            conflict_mark=0;
+            top_freq_tag=""; # 最高频率的tag
+            for(type in types){
+                if(top_freq_tag=="")
+                    top_freq_tag=types[type];
+                else{
+                    #选tag频率最高的类型作为该obj的类型
+                    tag=types[type];
+                    if(tag_freq[tag]>tag_freq[top_freq_tag])
+                        top_freq_tag=tag;
+                    conflict_mark=1;
+                }
+            }
+            ##print $3"*"top_freq_tag"*"tag_type[top_freq_tag];
+			
+			if(conflict_mark==1){ #前后数据有10W条冲突的,有必要挖掘出来
+                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
+            } else if(top_freq_tag!=""){
+                # objURL    fromURL tags    top_freq_tag    type
+                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
+            } else {
+                print $0 > no_out;
+			}
+
+			for (i in tags) {
+				tag = tags[i];
+				if (!(tag in pm_tag_cnt)) {
+					continue;
+				}
+
+				total_tag_cnt[tag]++;		
+				if (conflict_mark) {
+					conflict_tag_cnt[tag]++;
+				} else if (top_freq_tag != "") {
+					tag_left_cnt[tag]++;
+				} else {
+					no_tag_cnt[tag]++;
+				}
+			}
+        }
+    } END {
+		print "tag \t PM统计值 \t 去掉无tag后统计值 \t = 冲突统计值 + 无分类值 + 有效统计值" > stat_tag_out;
+		for (tag in pm_tag_cnt) {
+			print tag "\t" pm_tag_cnt[tag] "\t" total_tag_cnt[tag] "\t" conflict_tag_cnt[tag] "\t" no_tag_cnt[tag] "\t" tag_left_cnt[tag] > stat_tag_out; 
+		}
+	}' ${pm_stat_tags} ${func_tag_type_conf} ${tag_freq}  ${func_input} > ${func_output}
+	echo -e "	确定PM大分类后，输出文件为 ${func_output} `wc -l ${func_output} | cut -d' ' -f 1` 行"
+	echo -e	"	冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
 	echo -e	"	没被分类的为 ${no_type_out} `wc -l ${no_type_out} | cut -d' ' -f 1` 行"
+	echo -e "	tag 统计结果输出为 ${stat_tag}"
 }
 
 
@@ -250,9 +289,10 @@ function remove_black_tag
 			}
 			split($3,tags,",");
 			top_freq_tag=$4;
+
 ######################################################################			
 # 修改策略后的版本
-			
+#			
 			delete save_tag;
 			if(!(top_freq_tag in tag_black)){
 				save_tag[top_freq_tag] = 1;	
@@ -329,7 +369,7 @@ function remove_black_tag
 					final_tags[i] = 1;
 				}
 			}
-#			
+			
 ######################################################################			
 #	修改策略前的版本
 #			
@@ -337,7 +377,6 @@ function remove_black_tag
 #			tag1="";
 #			tag2="";
 #			tag3="";
-#			tag4="";
 #			for(i in tags){
 #				tag=tags[i];
 #				# 取4个最高频的tag
@@ -348,8 +387,6 @@ function remove_black_tag
 #						tag2=tag;
 #					}else if(tag3=="" || tag_freq[tag]>tag_freq[tag3]){
 #						tag3=tag;
-#					}else if(tag4=="" || tag_freq[tag]>tag_freq[tag4]){
-#						tag4=tag;	
 #					}
 #				}
 #			}
@@ -358,7 +395,7 @@ function remove_black_tag
 #				final_tags[top_freq_tag];
 #			}
 #
-######################################################################			
+#####################################################################			
 ## 			把 时尚搭配服饰 拆成  时尚搭配 和 服饰
 #			if($5==4){
 #				final_tags["时尚搭配"];
@@ -381,8 +418,6 @@ function remove_black_tag
 				final_tags[tag2];
 			if(tag3!="")
 				final_tags[tag3];
-#			if(tag4!="")
-#				final_tags[tag4];
 			tag_str="";
 			for( tag in final_tags){
 				if(tag_str=="")
