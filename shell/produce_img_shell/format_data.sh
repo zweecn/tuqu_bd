@@ -60,7 +60,7 @@ function format_data
 
 # 修改标签为其它标签 即 map
 	local modified_tag="conf/"${prefix}"_tag_modified"
-	
+
 # 类型索引
 	local type_index="conf/type_index"
 
