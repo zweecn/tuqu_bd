@@ -241,8 +241,12 @@ function tag_modify
 			tag_str="";
 			for(i in tags){
 				tag=tags[i];
+#				if (tag == "Å·ÃÀ·ç") {
+#					print tag"\t"suffix_tag_change[tag] > "o1";
+#				}
 				if(tag in suffix_tag_change){
 					tag=suffix_tag_change[tag];
+					
 				}
 				if(tag_str=="")
 					tag_str=tag;
