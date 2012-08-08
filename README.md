@@ -3,8 +3,9 @@ tuqu_baidu
 
 tuqu for baidu部署步骤:
 1. 拷贝所有文件到目标机器
-2. 每次执行 ./shell/produce_img_shell/produce_data_control.sh 即可选择需要的数据
-3. 日志输出到 ./log/produce_img.log
+2. 修改目标机的环境变量，增加一行 export LC_ALL=zh_CN.gbk 并使得环境变量生效
+3. 每次执行 ./shell/produce_img_shell/produce_data_control.sh 即可选择需要的数据
+4. 日志输出到 ./log/produce_img.log
 
 代码结构:
 

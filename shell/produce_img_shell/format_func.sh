@@ -209,7 +209,7 @@ function determine_tag_type
 			}
         }
     } END {
-		print "tag \t PM统计值 \t 去掉无tag后统计值 \t = 冲突统计值 + 无分类值 + 有效统计值" > stat_tag_out;
+#		print "tag \t PM统计值 \t 去掉无tag后统计值 \t = 冲突统计值 + 无分类值 + 有效统计值" > stat_tag_out;
 		for (tag in pm_tag_cnt) {
 			print tag "\t" pm_tag_cnt[tag] "\t" total_tag_cnt[tag] "\t" conflict_tag_cnt[tag] "\t" no_tag_cnt[tag] "\t" tag_left_cnt[tag] > stat_tag_out; 
 		}
@@ -508,4 +508,87 @@ function merge_path
 
 	echo -e "	合并本地路径后，输出文件为 ${output} `wc -l ${output} | cut -d ' ' -f 1` 行"
 	echo -e "	还需要下载的图片，输出文件为 ${urls_to_download} `wc -l ${urls_to_download} | cut -d ' ' -f 1` 行 "
+}
+
+### 8 统计最后生成的tag数量
+function stat_tags_final_objs
+{
+	local tag_modify=$1
+	local pm_tags=$2
+	local final_objs_data_without_path=$3
+	local final_objs_data=$4
+	local out=$5
+	awk -F '\t' '{
+		if (FILENAME == ARGV[1]) {
+			tag_modi_reverse[$2] = $1;
+			tag_modi[$1] = $2;
+		} else if (FILENAME == ARGV[2]) {
+			pm_tag_cnt[$1] = $2;	
+			last_tag_cnt_no_path[$1] = 0;
+			last_tag_cnt[$1] = 0;
+		} else if (FILENAME == ARGV[3]) {
+			split($3, tags, ",");		
+			for (i in tags) {
+				tag = tags[i];
+				if (tag == "服饰") {
+					print;
+				}
+				if (tag in pm_tag_cnt) {
+					last_tag_cnt_no_path[tag]++;
+				} else if (tag in tag_modi_reverse) {
+					last_tag_cnt_no_path[tag_modi_reverse[tag]]++;
+				}
+			}
+		} else if (FILENAME == ARGV[4]) {
+			split($2, tags, ",");		
+			for (i in tags) {
+				tag = tags[i];
+				if (tag in pm_tag_cnt) {
+					last_tag_cnt[tag]++;	
+				} else if (tag in tag_modi_reverse) {
+					last_tag_cnt[tag_modi_reverse[tag]]++;
+				}
+
+			}
+		}
+	
+	} END {
+		print "tag \t PM统计值 \t 包括没下载的	完全下载的	标签修改" ;
+		for (tag in pm_tag_cnt) {
+			print tag "\t" pm_tag_cnt[tag] "\t" last_tag_cnt_no_path[tag] "\t" last_tag_cnt[tag] "\t" (tag in tag_modi ? tag_modi[tag] : ""); 
+		}
+	
+	}' ${tag_modify} ${pm_tags} ${final_objs_data_without_path} ${final_objs_data} >  ${out}
+	
+	echo -e "	统计tag个数情况输出文件 ${out}"
+} 
+
+### 9 合并tag数量变化的数据
+function merge_tags_stat
+{
+	local tag_modify=$1
+	local stat_tag=$2
+	local final_tag=$3
+	local out=$4
+	awk -F '\t' '{
+		if (FILENAME == ARGV[1]) {
+			tag_modi[$1] = $2;
+		} else if (FILENAME == ARGV[2]) {
+			pm_tag_cnt[$1] = $2;	
+			total_tag_cnt[$1] = $3;
+			conflict_tag_cnt[$1] = $4;
+			no_tag_cnt[$1] = $5;
+			tag_left_cnt[$1] = $6;
+		} else if (FILENAME == ARGV[3]) {
+			last_tag_cnt_no_path[$1] = $3;
+			last_tag_cnt[$1] = $4;
+		}
+	} END {
+		for (tag in pm_tag_cnt) {
+			print tag "\t" pm_tag_cnt[tag] "\t" total_tag_cnt[tag] "\t" conflict_tag_cnt[tag] "\t" no_tag_cnt[tag] "\t" tag_left_cnt[tag] "\t" last_tag_cnt_no_path[tag] "\t" last_tag_cnt[tag] "\t" (tag in tag_modi ? tag_modi[tag] : ""); 
+		}
+	}' ${tag_modify}  ${stat_tag} ${final_tag} > ${out}
+	
+	echo -e "	统计tag个数情况输出文件 ${out}" 
+	echo -e "	格式: tag PM评估的tag次数 去掉无tag后的统计个数 冲突的图片tag统计 没有被分类的数据tag统计 可以确定PM大类的tag统计 选择出有效数据tag统计(含未下载) 有效数据统计(完全下载) tag替换(可选)"
 }
