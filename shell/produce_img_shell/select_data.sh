@@ -78,6 +78,19 @@ function check_file_exist
 		echo -e "${mine_type_demand_amount} file does not exist"
 		exit 1
 	fi
+	
+	local dingxiang_pm_tags="./conf/dingxiang_pm_tag_count"
+	if [ ! -f ${dingxiang_pm_tags} ]; then
+		echo -e "${dingxiang_pm_tags} file does not exist"
+		exit 1
+	fi
+	
+	local mine_pm_tags="./conf/mine_pm_tag_count"
+	if [ ! -f ${mine_pm_tags} ]; then
+		echo -e "${mine_pm_tags} file does not exist"
+		exit 1
+	fi
+
 }
 
 function restore_used_objs
@@ -188,9 +201,9 @@ function stat_data
 			split(t, arr, "-");
 
 #			限制每个大类上传的数据不超过需求	
-			if (dx_types[arr[2]] + need_t > type_demands[arr[2]]) {
-				need_t = type_demands[arr[2]] - dx_types[arr[2]];	
-			} 
+#			if (dx_types[arr[2]] + need_t > type_demands[arr[2]]) {
+#				need_t = type_demands[arr[2]] - dx_types[arr[2]];	
+#			} 
 
 #			if (need_t > type_demands[arr[2]]) {
 #				need_t = type_demands[arr[2]];

@@ -40,6 +40,9 @@ function format_data
 # 本脚本的输出文件
 	local out=${swap}"_final_objs_data"
 
+# 本脚本统计的tag情况输出文件 
+	local out_tag_stat=${swap}"_tag_stat"
+	
 #############################################################################
 # 临时文件
 # 计算出的tag频度
@@ -52,17 +55,20 @@ function format_data
 #############################################################################
 # 配置文件
 # 白名单（选择一个obj中需至少一个tag在白名单）
-	local white_tag="conf/"${prefix}"_tag_list"
+	local white_tag="./conf/"${prefix}"_tag_list"
 
 # 黑名单(tag黑名单和obj黑名单)
 	local black_objs="./conf/obj_black_list"
 	local black_tags="./conf/tag_black_list"
 
 # 修改标签为其它标签 即 map
-	local modified_tag="conf/"${prefix}"_tag_modified"
-
+	local modified_tag="./conf/"${prefix}"_tag_modified"
+	
 # 类型索引
-	local type_index="conf/type_index"
+	local type_index="./conf/type_index"
+
+# PM 统计的tag值
+	local pm_tags="./conf/"${prefix}"_pm_tag_count"
 
 #############################################################################
 # 代码开始
@@ -97,7 +103,8 @@ function format_data
 
 ### 3. 确定pm的大分类
 	echo "3. 确定PM大分类...";
-	determine_tag_type ${temp}.clean_tag ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type
+#	determine_tag_type ${temp}.clean_tag ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type
+	determine_tag_type ${temp}.clean_tag ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type ${pm_tags} ${temp}.stat_tag
 	if [ ${?} -ne 0 ]
 	then
 		echo "确定obj所属的大分类失败！";
@@ -147,10 +154,24 @@ function format_data
 		echo "合并图片路径数据失败！";
 		exit 1;
 	fi;
+	
+	echo "8. 统计tag个数情况..."
+	stat_tags_final_objs ${modified_tag} ${pm_tags} ${out}.without_path ${out}  ${temp}.final_tag_stat
+	if [ ${?} -ne 0 ]
+	then
+		echo "统计tag个数失败!";
+		exit 1;
+	fi;
+	
+	echo "9. 合并tag个数情况..."
+	merge_tags_stat ${modified_tag} ${temp}.stat_tag ${temp}.final_tag_stat  ${out_tag_stat}
+	if [ ${?} -ne 0 ]
+	then
+		echo "合并tag统计情况失败!";
+		exit 1;
+	fi;
 
 	echo -e "格式化${suffix}数据完成，输出数据为 ${out}"
 }
 
-#format_data "dingxiang"
-#format_data "mine"
 
