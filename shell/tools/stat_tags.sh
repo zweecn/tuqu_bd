@@ -18,8 +18,8 @@ filter_tags="data/temp/pre_online."${prefix}".tag_type.filter_tags"
 dingxiang_without_path="data/swap/"${prefix}"_final_objs_data.without_path"
 out=${temp}".stat"
 
-dingxiang_tag_list="conf/dingxiang_test_tag"
-mine_tag_list="conf/mine_test_tag"
+dingxiang_tag_list="conf/dingxiang_pm_tag_count"
+mine_tag_list="conf/mine_pm_tag_count"
 
 awk -F '\t' '{
 	if (FILENAME == ARGV[1]) {
@@ -77,7 +77,6 @@ awk -F '\t' '{
 } END {
 	print "Tag \t PM \t clean \t tag_type \t filter \t no_path";
 	for (i in tag_cnt) {
-#		print i "\t" pm_dingxiang[i] "\t" tag_cnt[i] "\t" tag_clean_tag[i] "\t" tag_tag_type[i]  "\t" tag_filter_tags[i] "\t" tag_without_path[i];
 		print i "\t" pm_dingxiang[i] "\t" tag_clean_tag[i] "\t" tag_tag_type[i]  "\t" tag_filter_tags[i] "\t" tag_without_path[i];
 	}
 

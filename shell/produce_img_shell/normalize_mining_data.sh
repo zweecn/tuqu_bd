@@ -46,7 +46,7 @@ awk -F '\t' '{
 		parser_tag=$3;
 		mining_tag=$4;
 		if(parser_tag!=""){
-		tag_str=parser_tag;
+			tag_str=parser_tag;
 		}else{
 			tag_str=mining_tag;
 		}
