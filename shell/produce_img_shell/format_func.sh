@@ -596,3 +596,22 @@ function merge_tags_stat
 	echo -e "	统计tag个数情况输出文件 ${out}" 
 	echo -e "	格式: tag PM评估的tag次数 去掉无tag后的统计个数 冲突的图片tag统计 没有被分类的数据tag统计 可以确定PM大类的tag统计 选择出有效数据tag统计(含未下载) 有效数据统计(完全下载) tag替换(可选)"
 }
+
+
+function clear_html
+{
+	local input=$1;
+	# 非法的HTML字符集合
+	local htm_char=(\&yuml\; \&yen\; \&Yacute\; \&yacute\; \&Uuml\; \&uuml\; \&uml\; \&Ugrave\; \&ugrave\; \&Ucirc\; \&ucirc\; \&Uacute\; \&uacute\; \&times\; \&THORN\; \&thorn\; \&szlig\; \&sup3\; \&sup2\; \&sup1\; \&shy\; \&sect\; \&reg\; \&raquo\; \&pound\; \&plusmn\; \&para\; \&Ouml\; \&ouml\; \&Otilde\; \&otilde\; \&Oslash\; \&oslash\; \&ordm\; \&ordf\; \&Ograve\; \&ograve\; \&Ocirc\; \&ocirc\; \&Oacute\; \&oacute\; \&Ntilde\; \&ntilde\; \&not \&nbsp\; \&middot\; \&micro\; \&macr\; \&lt\; \&laquo\; \&Iuml\; \&iuml\; \&iquest\; \&Igrave\; \&igrave\; \&iexcl\; \&Icirc\; \&icirc\; \&Iacute\; \&iacute\; \&gt\; \&frac34\; \&frac14\; \&frac12\; \&Euml\; \&euml\; \&ETH\; \&eth\; \&Egrave\; \&egrave\; \&Ecirc\; \&ecirc\; \&Eacute\; \&eacute\; \&divide\; \&deg\; \&curren\; \&copy\; \&cent\; \&cedil\; \&Ccedil\; \&ccedil\; \&brvbar\; \&Auml\; \&auml\; \&Atilde\; \&atilde\; \&Aring\; \&aring\; \&amp\; \&Agrave\; \&agrave\; \&AElig\; \&aelig\; \&acute\; \&Acirc\; \&acirc\; \&Aacute\; \&aacute\;)
+	# 替换为的字符
+	replace_char=""
+
+	echo "	开始替换非法的HTML字符..."
+
+	for htm in ${htm_char[@]}
+	do
+		sed -i -e "s#${htm}#${replace_char}#g" ${input}
+	done
+
+	echo "	HTML非法字符的替换完成，输出文件为 ${input}"
+}

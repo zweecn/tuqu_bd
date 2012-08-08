@@ -155,6 +155,7 @@ function format_data
 		exit 1;
 	fi;
 	
+### 8 统计tag个数情况
 	echo "8. 统计tag个数情况..."
 	stat_tags_final_objs ${modified_tag} ${pm_tags} ${out}.without_path ${out}  ${temp}.final_tag_stat
 	if [ ${?} -ne 0 ]
@@ -162,12 +163,22 @@ function format_data
 		echo "统计tag个数失败!";
 		exit 1;
 	fi;
-	
+
+### 9 合并tag个数情况	
 	echo "9. 合并tag个数情况..."
 	merge_tags_stat ${modified_tag} ${temp}.stat_tag ${temp}.final_tag_stat  ${out_tag_stat}
 	if [ ${?} -ne 0 ]
 	then
 		echo "合并tag统计情况失败!";
+		exit 1;
+	fi;
+
+### 10 去掉HTML字符
+	echo "10. 去掉非法HTML字符..."
+	clear_html ${out} 
+	if [ ${?} -ne 0 ]
+	then
+		echo "去掉HTML字符失败!";
 		exit 1;
 	fi;
 

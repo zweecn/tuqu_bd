@@ -398,11 +398,11 @@ if [ $? -ne 0 ]; then
 fi
 
 # 	5. Ìæ»»HTML×Ö·û
-./shell/produce_img_shell/clear_html_char.sh 
-if [ ${?} -ne 0 ]
-then 
-    echo "Ìæ»»HTML×Ö·ûÊ§°Ü!";
-    exit 1;
-fi;
-
+#./shell/produce_img_shell/clear_html_char.sh 
+#if [ ${?} -ne 0 ]
+#then 
+#    echo "Ìæ»»HTML×Ö·ûÊ§°Ü!";
+#    exit 1;
+#fi;
+#
 date
