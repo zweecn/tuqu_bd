@@ -21,6 +21,7 @@ function clean_tag
 			print $0 > out;
 			next;
 		}
+		gsub("、","\\$\\$",$3);
 		split($3,tags,"\\$\\$");
 		# 图趣要求tag中不能有空格！且tag需用,分割
 		delete tag_set;
@@ -412,28 +413,44 @@ function remove_black_tag
 #			}
 ######################################################################			
 			
+			delete final_tags;
 			if($5!=0){
 				final_tags[type_index[$5]];
 			}
-			
-			if(tag1!="")
+			if(!(top_freq_tag in tag_black)){
+				final_tags[top_freq_tag];	
+			}
+			if(tag1!="") 
 				final_tags[tag1];
 			if(tag2!="")
 				final_tags[tag2];
 			if(tag3!="")
 				final_tags[tag3];
+			tag_cnt = 0;
 			tag_str="";
 			for( tag in final_tags){
+				tag_cnt++;
 				if(tag_str=="")
 					tag_str=tag;
 				else
 					tag_str=tag_str","tag;
 			}
-			# objURL    fromURL     tags    top_freq_tag    type
-			print $1"\t"$2"\t"tag_str"\t"top_freq_tag"\t"type;
+			if (tag_cnt > 1 || ($5 == 0 && tag_cnt > 0)) {
+				# objURL    fromURL     tags    top_freq_tag    type
+				print $1"\t"$2"\t"tag_str"\t"top_freq_tag"\t"type;
+			} else {
+				print > "'${data_tag_type}.less_tags'"		
+				print $1"\t"$2"\t"tag_str"\t"top_freq_tag"\t"type > "'${data_tag_type}.less_tags.after'";
+			}
 		}
 	}' ${black_objs} ${black_tags} ${type_index} ${tag_type_list} ${tag_freq_modified} ${data_tag_type} > ${data_tag_type_filter_tags};
 	echo -e "	去掉黑名单后输出文件为 ${data_tag_type_filter_tags} `wc -l ${data_tag_type_filter_tags} | cut -d' ' -f 1` 行"
+	if [ -f ${data_tag_type}.less_tags ]; then
+		echo -e "	tag数量少于2的输出文件为 ${data_tag_type}.less_tags `wc -l ${data_tag_type}.less_tags | cut -d ' ' -f 1` 行"
+	fi
+	if [ -f ${data_tag_type}.less_tags.after ]; then
+		echo -e "	tag数量少于2的处理后输出文件为 ${data_tag_type}.less_tags.after `wc -l ${data_tag_type}.less_tags.after | cut -d ' ' -f 1` 行"
+	fi
 }
 
 ### **.dingxiang 在分类信息后增加每个站点信息, 更新每个类别需要的图片数量的配置

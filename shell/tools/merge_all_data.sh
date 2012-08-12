@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#   合并 定向数据和挖掘数据的  final_objs_data
 ####################################################################################
 #	基本数据目录
 # 	filename 		程序正在执行的脚本文件名
@@ -27,14 +28,16 @@ awk -F '\t' '{
 	if (FILENAME == ARGV[1]) {
 		split($6, arr, "-");
 		if (!mark[1]) {
-			print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"arr[2];
+			print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"arr[2]"\t"rand();
 			mark[$1] = 1;
 		}
 	} else if (FILENAME == ARGV[2]) {
 		if (!mark[1]) {
-			print;
+			print $0"\t"rand();
 			mark[$1] = 1;
 		}
 	}
 
-}' ${dx_final_objs} ${mi_final_objs} > ${out}
+}' ${dx_final_objs} ${mi_final_objs} | sort -n -k7 | cut -d '	' -f 1,2,3,4,5,6 > ${out}
+
+echo "合并完毕 输出到 " ${out}
