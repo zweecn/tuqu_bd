@@ -7,6 +7,14 @@
 #
 ###################################################################################
 
+echo ${LC_ALL}
+
+if [ ${LC_ALL} != "zh_CN.gbk" ]; then
+	echo "修改环境变量 LC_ALL 为 zh_CN.gbk"
+	echo "export LC_ALL=zh_CN.gbk" >> ~/.bashrc
+	source ~/.bashrc
+fi
+
 log_file="./log/produce_img.log"
 if [ ! -d "log" ]; then 
 	mkdir log
