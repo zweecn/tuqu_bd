@@ -21,8 +21,7 @@ dingxiang_with_path="data/swap/"${prefix}"_final_objs_data"
 used_objs="data/input/used_objs"
 out=${temp}".stat"
 
-dingxiang_tag_list="conf/dingxiang_pm_tag_count"
-mine_tag_list="conf/mine_pm_tag_count"
+tag_list="conf/"${prefix}"_pm_tag_count"
 
 awk -F '\t' '{
 	if (FILENAME == ARGV[1]) {
@@ -99,6 +98,6 @@ awk -F '\t' '{
 
 	}
 
-}' ${dingxiang_tag_list} ${objs_all} ${clean_tag} ${tag_type} ${filter_tags} ${dingxiang_without_path} ${used_objs} ${dingxiang_with_path} > ${out}
+}' ${tag_list} ${objs_all} ${clean_tag} ${tag_type} ${filter_tags} ${dingxiang_without_path} ${used_objs} ${dingxiang_with_path} > ${out}
 
 echo "统计完成." ${out}
