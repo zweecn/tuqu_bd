@@ -1,6 +1,10 @@
 #!/bin/bash
 
-./shell/tools/merge_all_data.sh
+echo ""
+echo "==========================================================================="
+date
+
+#./shell/tools/merge_all_data.sh
 if [ $? -ne 0 ]; then
 	echo "∫œ≤¢filan_objs_data ß∞‹."
 	exit 1
@@ -23,7 +27,7 @@ output="./data/output"
 today=`date +%Y%m%d`
 ###################################################################################
 
-final_objs=${swap}"/merge_final_objs_data"
+final_objs=${swap}"/mine_final_objs_data"
 need="conf/img.need"
 used_obj=${input}"/used_objs"
 out=${swap}"/other_4_base_data"

@@ -3,7 +3,7 @@
 echo "统计挖掘数据的tag在不同文件中的分布..."
 
 filename=`echo $0 | awk -F'[./]' '{ print $(NF - 1)}'`
-temp="./data/temp/"${filename}.${prefix}
+temp="./data/temp/"${filename}".mine"
 input="./data/input"
 swap="./data/swap"
 output="./data/output"
@@ -14,7 +14,7 @@ source_valid="data/mine_data/source_valid"
 source_valid_rm_useless="data/mine_data/source_valid.rm_useless"
 sus_out="data/mine_data/output"
 thumb=${input}"/output.thumb"
-out=${temp}".stat"
+out=${swap}"mine_stat"
 
 mine_tag_list="conf/mine_pm_tag_count"
 
@@ -88,6 +88,6 @@ awk -F '\t' '{
 		print i "\t" pm_mine[i] "\t" tag_merged[i] "\t" tag_valid[i] "\t" tag_valid_rm[i] "\t" sus_out[i] "\t" tag_thumb[i]; 
 	}
 
-}' ${mine_tag_list} ${merged} ${source_valid} ${source_valid_rm_useless} ${thumb} #> ${out}
+}' ${mine_tag_list} ${merged} ${source_valid} ${source_valid_rm_useless} ${thumb} > ${out}
 
 echo "统计完成."
