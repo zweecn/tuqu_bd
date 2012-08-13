@@ -115,10 +115,6 @@ awk -F '\t' '{
 		print i "\t" pm_mine[i] "\t" tag_merged[i] "\t" tag_valid[i] "\t" tag_valid_rm[i] "\t" sus_out[i] "\t" tag_thumb[i]; 
 	}
 
-<<<<<<< HEAD
-}' ${mine_tag_list} ${merged} ${source_valid} ${source_valid_rm_useless} ${thumb} > ${out}
-=======
 }' ${mine_tag_list} ${merged} ${source_valid} ${source_valid_rm_useless} ${sus_out} ${thumb} > ${out}
->>>>>>> 4ac71be39860df37e4c7548a2f7aff5bc9d1c257
 
 echo "统计完成."
