@@ -21,7 +21,7 @@ function clean_tag
 			print $0 > out;
 			next;
 		}
-		gsub("、","\\$\\$",$3);
+		gsub("、","$$",$3);
 		split($3,tags,"\\$\\$");
 		# 图趣要求tag中不能有空格！且tag需用,分割
 		delete tag_set;
