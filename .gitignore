@@ -26,3 +26,5 @@ tuqu_dev/conf
 for_dali
 v2
 bak
+*.out
+
