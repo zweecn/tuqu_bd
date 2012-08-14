@@ -7,8 +7,6 @@
 #
 ###################################################################################
 
-echo ${LC_ALL}
-
 if [ ${LC_ALL} != "zh_CN.gbk" ]; then
 	echo "修改环境变量 LC_ALL 为 zh_CN.gbk"
 	echo "export LC_ALL=zh_CN.gbk" >> ~/.bashrc
@@ -24,5 +22,6 @@ fi
 if [ $? -ne 0 ]; then
 	echo "选择图片数据的主控制程序失败!" >> ${log_file}
 	echo "图趣线上生成数据失败，请跟进检查." | mail -s "图趣线上数据报警" zhengwei04@baidu.com
+	echo "图趣线上生成数据失败，请跟进检查." | mail -s "图趣线上数据报警" luodali@baidu.com
 	exit 1
 fi

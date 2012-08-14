@@ -59,3 +59,6 @@ awk -F'\t' '{
 			print;
 	}
 }' ${dingxiang_tag} ${dingxiang}.0 > ${dingxiang}.0.2type
+
+echo "Íê³É."
+

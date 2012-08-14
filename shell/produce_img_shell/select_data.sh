@@ -1,6 +1,8 @@
 #!/bin/bash
 function check_file_exist
 {
+	echo "[检查]	检查文件是否存在..."
+
 	local temp="./data/temp/"
 	if [ ! -d ${temp} ]; then
 		echo -e "${temp} dir does not exist"
@@ -19,7 +21,7 @@ function check_file_exist
 		exit 1
 	fi
 	
-	local output="./data/output/"
+	local output="./data/output"
 	if [ ! -d ${output} ]; then
 		echo -e "${output} dir does not exist"
 		exit 1
@@ -54,202 +56,19 @@ function check_file_exist
 		echo -e "${used_objs} file does not exist"
 		exit 1
 	fi
-
-	local total_type_demand="conf/total_type_demand"
-	if [ ! -f ${total_type_demand} ]; then
-		echo -e "${total_type_demand} file does not exist"
-		exit 1
-	fi
-
-	local dx_vs_mine="conf/dingxiang_vs_mine"
-	if [ ! -f ${dx_vs_mine} ]; then
-		echo -e "${dx_vs_mine} file does not exist"
-		exit 1
-	fi
-
-	local dingxiang_type_demand_amount="conf/dingxiang_type_demand"
-	if [ ! -f ${dingxiang_type_demand_amount} ]; then
-		echo -e "${dingxiang_type_demand_amount} file does not exist"
-		exit 1
-	fi
-
-	local mine_type_demand_amount="conf/mine_type_demand"
-	if [ ! -f ${mine_type_demand_amount} ]; then
-		echo -e "${mine_type_demand_amount} file does not exist"
-		exit 1
-	fi
-	
-	local dingxiang_pm_tags="./conf/dingxiang_pm_tag_count"
-	if [ ! -f ${dingxiang_pm_tags} ]; then
-		echo -e "${dingxiang_pm_tags} file does not exist"
-		exit 1
-	fi
-	
-	local mine_pm_tags="./conf/mine_pm_tag_count"
-	if [ ! -f ${mine_pm_tags} ]; then
-		echo -e "${mine_pm_tags} file does not exist"
-		exit 1
-	fi
-
-}
-
-function restore_used_objs
-{
-	echo "0. 开始按照前两天的used_objs恢复used_objs..."
-	local used_objs="data/input/used_objs"
-	local backup_dir="data/input/used_objs_backup"
-
-	local yesterday=`date -d"1 day ago" +"%Y%m%d"`
-	local two_days_ago=`date -d"2 day ago" +"%Y%m%d"`
-	local three_days_ago=`date -d"3 day ago" +"%Y%m%d"`
-
-	all_used=`ls ${backup_dir}/*${yesterday}*`
-	if [ $? -ne 0 ]; then
-		echo "昨天的used_objs不存在，尝试前天的."
-		all_used=`ls ${backup_dir}/*${two_days_ago}*`
-		if [ $? -ne 0 ]; then
-			all_used=`ls ${backup_dir}/*${three_days_ago}*`
-			if [ $? -ne 0 ]; then
-				echo "前天的used_objs不存在，尝试所有的."
-				all_used=`ls ${backup_dir}`
-				if [ $? -ne 0 ]; then
-					echo "没有备份的used_objs，失败!"
-					exit 1
-				fi
-			fi
-		fi
-	fi
-
-	echo "将从以下文件恢复used_objs:"
-	for used in ${all_used[@]}
-	do
-		echo "	" ${used}
-		awk -F '\t' '{
-			if (!mark[$1]) {
-				print;
-				mark[$1] = 1;
-			}
-		}' ${used} >  ${used_objs}.tmp
-	done
-
-	if [ -s ${used_objs}.tmp ]; then
-		mv ${used_objs}.tmp ${used_objs}
-	fi
-	echo "恢复used_objs完成."
-}
-
-function stat_data
-{
-####################################################################################
-	local filename=`echo $0 | awk -F'[./]' '{ print $(NF - 1)}'`
-	local temp="./data/temp/"${filename}
-	local swap="./data/swap/"
-	local input="./data/input"
-####################################################################################
-	local dingxiang_final_objs=${swap}"dingxiang_final_objs_data"
-	local mine_final_objs=${swap}"mine_final_objs_data"
-	local used_objs=${input}"/used_objs"	
-# 配置文件
-# 每日PM的需求数据数量 
-	local total_type_demand="conf/total_type_demand"
-# 需求中定向和挖掘的需求比例
-	local dx_vs_mine="conf/dingxiang_vs_mine"
-
-	local dingxiang_type_demand_amount="conf/dingxiang_type_demand"
-	local mine_type_demand_amount="conf/mine_type_demand"
-	
-	echo -e "1. 开始统计数据和按比例生成需要数据..."
-	awk -F '[\t]' -v dx_d="${dingxiang_type_demand_amount}" -v mi_d="${mine_type_demand_amount}" -v dx_null_type="${temp}.dingxiang_null_type" -v mi_null_type="${temp}.mine_null_type" '{
 		
-		if (FILENAME==ARGV[1]) {
-			type_demands[$1]=$2;
-			total_needed+=$2;
-		} else if (FILENAME==ARGV[2]) {
-			dx_need = total_needed * $1 / ($1+$2);
-			mi_need = total_needed - dx_need;
-			print "\t定向数据和挖掘数据分别需要 "dx_need" 和 "mi_need " 张";
-		} else if (FILENAME == ARGV[3]) {
-			used[$1] = 1;
-		} else if (FILENAME == ARGV[4]) {
-			if ($1 in used)
-				next;
-			if ($6 == "") {
-				print $0 > dx_null_type;
-				next;
-			}
-			dx_cnt[$6]++;
-			dx_total++;
-		} else if (FILENAME == ARGV[5]) {
-			if ($1 in used)
-				next;
-			if ($6 == "") {
-				print $0 > mi_null_type;
-				next;
-			}
-			mi_cnt[$6]++;
-			mi_total++;
-		} 	
-	} END {
-		print "\t定向数据:\tTotal:" dx_total "\tNeed:" dx_need;
-		print "\t库中还有点图片数据为:";
-		print "\t-------------------------------------------------"
-		for (t in dx_cnt) {
-			need_t = dx_need*dx_cnt[t]/dx_total;
-			if (need_t != 0 && dingxiang_min_day < dx_cnt[t] / need_t) {
-				dingxiang_min_day = dx_cnt[t] / need_t;
-			}
-			split(t, arr, "-");
-
-#			限制每个大类上传的数据不超过需求	
-#			if (dx_types[arr[2]] + need_t > type_demands[arr[2]]) {
-#				need_t = type_demands[arr[2]] - dx_types[arr[2]];	
-#			} 
-
-#			if (need_t > type_demands[arr[2]]) {
-#				need_t = type_demands[arr[2]];
-#			}
-#			type \t need_count \t now_left_count
-			printf("%s\t%d\t%d\n", t, need_t, dx_cnt[t]) > dx_d;
-			printf("\t%s\t%d\n", t, dx_cnt[t]);
-			dx_types[arr[2]] += need_t;
-		}
-		print "\t-------------------------------------------------"
-		print "\t挖掘数据:\tTotal:" mi_total "\tNeed:" mi_need;
-		print "\t库中还有点图片数据为:";
-		print "\t-------------------------------------------------"
-		for (t in mi_cnt) {
-			need_t = type_demands[t] - dx_types[t];
-			if (need_t < 0) {
-				need_t = 0;
-			}
-			if (need_t != 0 && mine_min_day < mi_cnt[t] / need_t) {
-				mine_min_day = mi_cnt[t] / need_t;
-			}
-			printf("%s\t%d\t%d\n", t, need_t, mi_cnt[t]) > mi_d;
-			printf("\t%s\t%d\n", t, mi_cnt[t]);
-		}
-		print "\t-------------------------------------------------"
-		print "定向数据大约还可以支撑 " dingxiang_min_day " 天，挖掘数据大约还可以支撑 " mine_min_day " 天"
-		if (dx_total < dx_need || mi_total < mi_need) {
-			print "\t警告:库中数据量不足，后续无法选择. 定向剩余/定向需求=" dx_total"/"dx_need " 挖掘剩余/挖掘需求=" mi_total"/"mi_need;
-		}
-	}' ${total_type_demand} ${dx_vs_mine} ${used_objs} ${dingxiang_final_objs} ${mine_final_objs}
-
-	echo -e "	已按照定向数据所占比例生成各大类数据，输出为 ${dingxiang_type_demand_amount}"
-	echo -e "	已按照挖掘数据所占比例生成各大类数据，输出为 ${mine_type_demand_amount}"
-	echo -e "	发现一堆数据没有大类型，输出为 ${temp}.dingxiang_null_type"
-	echo -e "	发现一堆数据没有大类型，输出为 ${temp}.mine_null_type"
+	echo "[结束]	输入文件检查完毕."
 }
 
 function select_data
 {
 	if [ $# -ne 1 ];then
-		echo "参数个数错误，正确的参数个数是1."
+		echo "[参数]	参数个数错误，正确的参数个数是1."
 		exit 1
 	fi
 	local prefix=$1
 	if [ $prefix != "dingxiang" -a $prefix != "mine" ]; then
-		echo "参数错误. 正确的参数只能是1个: dingxiang 或者 mine ."
+		echo "[参数]	参数错误. 正确的参数只能是1个: dingxiang 或者 mine ."
 		exit 1
 	fi
 
@@ -285,7 +104,7 @@ function select_data
 	local dx_vs_mine="conf/dingxiang_vs_mine"
 
 		
-	echo -e "2. 开始选择数据 ${prefix}..."
+	echo -e "[开始]	开始选择数据 ${prefix}..."
 ### 选择数据
 	awk -F '\t' -v tmp_used_objs="${temp}.used_objs" -v output="${temp}.candidate" ' BEGIN{
 		delete type_demands;
@@ -309,7 +128,6 @@ function select_data
 	}END{
 		print "\t选择的数据情况:"
 		print "\t-------------------------------------------------";
-#		for(type in type_selected){
 		for(type in type_demands){
 			print "\t"type"\t"type_selected[type]"/"type_demands[type];
 			count+=type_selected[type];
@@ -329,7 +147,7 @@ function select_data
 	}' ${type_demand_amount} ${used_objs} ${final_objs};
 	if [ ${?} -ne 0 ]
 	then
-		echo "生成数据"${out}"失败!";
+		echo -e "[错误]	生成数据 ${temp}.candidate 失败."
 		exit 1;
 	fi;
 
@@ -339,13 +157,13 @@ function select_data
 	}' ${temp}.candidate | sort -t '	' -n -k5,5 | cut -f1,2,3,4 > ${out};
 	if [ ${?} -ne 0 ]
 	then
-		echo "随机打散类型obj失败!";
+		echo -e "[错误]	随机打散类型obj失败!";
 		exit 1;
 	fi;
 	cat ${temp}.used_objs >> ${used_objs};
 	if [ ${?} -ne 0 ]
 	then
-		echo "合并使用过的obj失败！";
+		echo -e "[错误]	生成 ${used_objs} 失败!";
 		exit 1;
 	fi;
 
@@ -353,56 +171,55 @@ function select_data
 #	cp ${temp}.used_objs ${used_objs_backup}
 	if [ ${?} -ne 0 ]
 	then
-		echo -e "备份${used_objs}失败!"
+		echo -e "[错误]	备份${used_objs}失败!"
 		exit 1;
 	fi;
 
-	echo -e "	选择数据完成，输出文件为 ${out}"
+	echo -e "[输出]	选择数据完成，输出文件为 ${out}"
 }
 
-echo ""
-echo "==============================================================================="
-date
+function merge_dingxiang_mine
+{
+	echo -e "[开始]	开始合并生成的定向数据和挖掘数据..."
+	local today=`date +%Y%m%d`
+	local dingxiang="data/output/data_for_tuqu/data_index.dingxiang."${today}
+	local mine="data/output/data_for_tuqu/data_index.mine."${today}
+	local out="data/output/data_for_tuqu/data_index."${today}
+	
+	awk -F '\t' '{
+		print $1 "\t" $2 "\t" $3 "\t" $4 "\t" rand();
+	}' ${dingxiang} ${mine} | sort -k5 -n | cut -d'	' -f 1,2,3,4 > ${out} 
 
-# 	0. 检查文件是否存在
+	echo -e "[输出]	生成数据成功. 输出为 ${out}"
+}
+
+echo "==============================================================================="
+echo -e "[开始时间]	`date` "
+
+# 	1. 检查文件是否存在
 check_file_exist
 if [ $? -ne 0 ]; then 
-	echo "缺少配置文件或者输入文件，请检查conf和data目录是否正常."
+	echo "[错误]	缺少配置文件或者输入文件，请检查conf和data目录是否正常."
 	exit 1
 fi
 
-# 	1. 恢复used_objs
-restore_used_objs
-if [ $? -ne 0 ]; then
-	echo "恢复used_objs失败!"
-fi
-
-#	2. 统计数据
-stat_data 
-if [ $? -ne 0 ]; then
-	echo "恢复used_objs失败!"
-fi
-
-#	3. 选择定向数据
-echo "开始选择定向数据..."
+#	2. 选择定向数据
 select_data "dingxiang"
 if [ $? -ne 0 ]; then
-	echo "选择定向数据失败."
+	echo "[错误]	选择定向数据失败."
 fi
 
-#	4. 选择挖掘数据
-echo "开始选择挖掘数据..."
+#	3. 选择挖掘数据
 select_data "mine"
 if [ $? -ne 0 ]; then
-	echo "挖掘数据选择失败."
+	echo "[错误]	挖掘数据选择失败."
 fi
 
-# 	5. 替换HTML字符
-#./shell/produce_img_shell/clear_html_char.sh 
-#if [ ${?} -ne 0 ]
-#then 
-#    echo "替换HTML字符失败!";
-#    exit 1;
-#fi;
-#
-date
+#	4. 合并定向数据和挖掘数据并打散
+merge_dingxiang_mine
+if [ $? -ne 0 ]; then
+	echo "[错误]	合并定向数据和挖掘数据失败."
+fi
+
+echo -e "[结束时间]	`date` "
+echo "==============================================================================="
