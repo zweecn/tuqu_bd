@@ -42,8 +42,20 @@ awk -F '\t' '{
 }' ${dingxiang_tag} ${dingxiang} > ${dingxiang}.0
 
 awk -F'\t' '{
-if (type_cnt == 2) {
+	if (FILENAME == ARGV[1]) {
+		pm_types[$1] = $2;	
+	} else {
+		split($3, tags, ",");
+		delete img_type;
+		type_cnt = 0;
+		for (i in tags) {
+			tag = tags[i];
+			if (tag in pm_types) {
+				img_type[tag] = 1;	
+				type_cnt++;
+			}
+		}
+		if (type_cnt == 2)
 			print;
-		}	
-
-}'
+	}
+}' ${dingxiang_tag} ${dingxiang}.0 > ${dingxiang}.0.2type

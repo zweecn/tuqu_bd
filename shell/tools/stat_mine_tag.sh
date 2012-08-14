@@ -52,7 +52,7 @@ awk -F '\t' '{
 		gsub(",", "$$", tag_line);
 		tag_line = tolower(tag_line); 
 		delete tags;
-		split(tag_line, tags, "\\$\\$");
+		split(tag_line, tags, "$$");
 		for (i in tags) {
 			if (tags[i] in pm_mine) {
 				tag_merged[tags[i]]++;
@@ -64,7 +64,7 @@ awk -F '\t' '{
 		gsub(",", "$$", tag_line);
 		tag_line = tolower(tag_line); 
 		delete tags;
-		split(tag_line, tags, "\\$\\$");
+		split(tag_line, tags, "$$");
 		for (i in tags) {
 			if (tags[i] in pm_mine) {
 				tag_valid[tags[i]]++;
@@ -76,7 +76,7 @@ awk -F '\t' '{
 		gsub(",", "$$", tag_line);
 		tag_line = tolower(tag_line); 
 		delete tags;
-		split(tag_line, tags, "\\$\\$");
+		split(tag_line, tags, "$$");
 		for (i in tags) {
 			if (tags[i] in pm_mine) {
 				tag_valid_rm[tags[i]]++;
@@ -88,7 +88,7 @@ awk -F '\t' '{
 		gsub(",", "$$", tag_line);
 		tag_line = tolower(tag_line); 
 		delete tags;
-		split(tag_line, tags, "\\$\\$");
+		split(tag_line, tags, "$$");
 		for (i in tags) {
 			if (tags[i] in pm_mine) {
 				sus_out[tags[i]]++;
@@ -103,7 +103,7 @@ awk -F '\t' '{
 		gsub(",", "$$", tag_line);
 		tag_line = tolower(tag_line); 
 		delete tags;
-		split(tag_line, tags, "\\$\\$");
+		split(tag_line, tags, "$$");
 		for (i in tags) {
 			if (tags[i] in pm_mine) {
 				tag_thumb[tags[i]]++;
@@ -118,3 +118,4 @@ awk -F '\t' '{
 }' ${mine_tag_list} ${merged} ${source_valid} ${source_valid_rm_useless} ${sus_out} ${thumb} > ${out}
 
 echo "统计完成."
+echo -e "输出文件到 ${out}"
