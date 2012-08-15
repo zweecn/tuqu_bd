@@ -33,8 +33,6 @@ out=${swap}"/dingxiang_data_normalized";
 # 代码开始
 #
 
-echo "开始格式化定向数据..."
-
 awk -F '\t' '{
     # objURL    fromURL     tags
     if (!mark[$8]) {
@@ -45,8 +43,8 @@ awk -F '\t' '{
 
 if [ ${?} -ne 0 ]
 then 
-    echo "归一化定向（合作）数据失败!"
+    echo "[错误]	归一化定向（合作）数据失败!"
     exit 1
 fi
 
-echo -e "格式化定向数据完成. 输出文件为 ${out}"
+echo -e "[输出]	格式化定向数据完成. 输出文件为 ${out}"

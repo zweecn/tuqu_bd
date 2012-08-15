@@ -343,7 +343,7 @@ function remove_black_tag
 function update_type_and_demand
 {
 	local inout=$1
-	local temp=$2
+	local temp=${inout}.tmp
 	echo "	** 定向数据需要统计来源数据占比..."
 	perl -lne '{
 		if ($_ =~ /\/\/(.*?)\/.+?\/\/(.*?)\//) { 

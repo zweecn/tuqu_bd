@@ -38,8 +38,6 @@ out=${swap}"/mine_data_normalized";
 # 代码开始
 #
 
-echo "开始格式化挖掘数据..."
-
 awk -F '\t' '{
     if (FILENAME == ARGV[1]) {
 		# objURL    fromURL     tags
@@ -64,8 +62,8 @@ awk -F '\t' '{
 
 if [ ${?} -ne 0 ]
 then 
-    echo "归一化挖掘数据失败!";
+    echo "[错误]	归一化挖掘数据失败!";
     exit 1;
 fi;
 
-echo -e "格式化挖掘数据完成. 输出文件为 ${out}"
+echo -e "[输出]	格式化挖掘数据完成. 输出文件为 ${out}"

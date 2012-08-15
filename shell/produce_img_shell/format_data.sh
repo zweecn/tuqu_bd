@@ -39,10 +39,11 @@ function format_data
 
 # ±¾½Å±¾µÄÊä³öÎÄ¼ş
 	local out=${swap}"_final_objs_data"
+	local out_without_path=${out}.without_path
 
 # ±¾½Å±¾Í³¼ÆµÄtagÇé¿öÊä³öÎÄ¼ş 
 	local out_tag_stat=${swap}"_tag_stat"
-	
+		
 #############################################################################
 # ÁÙÊ±ÎÄ¼ş
 # ¼ÆËã³öµÄtagÆµ¶È
@@ -51,6 +52,15 @@ function format_data
 
 # »¹ĞèÒªÏÂÔØµÄÍ¼Æ¬£¬Òà¼´±¾µØÃ»ÓĞµÄÍ¼Æ¬
 	local urls_to_download=${temp}".urls_to_download"
+
+	local tag_cleaned=${temp}.clean_tag 
+	local no_tag=${temp}.no_tag	
+	local tag_modified=${temp}.tag_modified
+	local type_conflict=${temp}.type_conflict
+	local no_type=${temp}.no_type
+	local stat_tag_res=${temp}.stat_tag
+	local final_tag_stat=${temp}.final_stat_tag
+	local filter_tags=${temp}.filter_tags
 
 #############################################################################
 # ÅäÖÃÎÄ¼ş
@@ -62,8 +72,7 @@ function format_data
 	local black_tags="./conf/tag_black_list"
 
 # ĞŞ¸Ä±êÇ©ÎªÆäËü±êÇ© ¼´ map
-	local modified_tag="./conf/"${prefix}"_tag_modified"
-	local pre_modi_tag="./conf/pre_modi_tag"
+	local modified_tag="./conf/tag_modified"
 
 	local clear_char="./conf/clear_char"
 # ÀàĞÍË÷Òı
@@ -75,9 +84,8 @@ function format_data
 #############################################################################
 # ´úÂë¿ªÊ¼
 #
-
-	echo -e "¿ªÊ¼¸ñÊ½»¯Êı¾İ ${prefix} ..."
-	echo "source format_func.sh ..."
+	echo -e "[format_data.sh] ¿ªÊ¼¸ñÊ½»¯ ${prefix}..."
+	echo "	source format_func.sh ..."
 	source ./shell/produce_img_shell/format_func.sh
 	if [ ${?} -ne 0 ]
 	then
@@ -87,7 +95,7 @@ function format_data
 
 ### 1. ÇåÏ´ tag£¬È¥µôÃ»ÓĞtag µÄobj£¬°ÑtagÖĞµÄ¿Õ¸ñÌæ»»Îª_£¬ÓÃ,·Ö¸îtag,È¥µôÖØ¸´µÄtag,È¥µô¿Õtag
 	echo "1. ÇåÏ´tag...";
-	clean_tag ${in} ${temp}.clean_tag ${temp}.no_tag;
+	clean_tag ${in} ${tag_cleaned} ${no_tag}
 	if [ ${?} -ne 0 ]
 	then
 		echo "ÇåÏ´tagÊ§°Ü£¡";
@@ -96,7 +104,7 @@ function format_data
 
 ### 2. ĞŞ¸ÄÒ»Ğ©tagÎªÁíÍâµÄtag£¨¸ù¾İPMµÄÅäÖÃ: conf/*_tag_modified)
 	echo "2. ĞŞ¸Ätag..."
-	pre_tag_modify ${pre_modi_tag} ${clear_char} ${temp}.clean_tag ${temp}.modi_tags
+	pre_tag_modify ${modified_tag} ${clear_char} ${tag_cleaned} ${tag_modified}
 	if [ ${?} -ne 0 ]
 	then
 		echo "ĞŞ¸ÄtagÊ§°Ü£¡";
@@ -105,7 +113,7 @@ function format_data
 
 ### 3. ¼ÆËã¸÷¸ötagµÄfreq
 	echo "3. ¼ÆËãtagÆµÂÊ...";
-	cal_tag_freq ${temp}.modi_tags ${tag_freq}
+	cal_tag_freq ${tag_modified} ${tag_freq}
 	if [ ${?} -ne 0 ]
 	then
 		echo "¼ÆËãtagÆµÂÊÊ§°Ü!";
@@ -114,7 +122,7 @@ function format_data
 
 ### 4. È·¶¨pmµÄ´ó·ÖÀà
 	echo "4. È·¶¨PM´ó·ÖÀà...";
-	determine_tag_type ${temp}.modi_tags ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type ${pm_tags} ${temp}.stat_tag
+	determine_tag_type ${tag_modified} ${white_tag} ${data_tag_type} ${type_conflict} ${no_type} ${pm_tags} ${stat_tag_res}
 	if [ ${?} -ne 0 ]
 	then
 		echo "È·¶¨objËùÊôµÄ´ó·ÖÀàÊ§°Ü£¡";
@@ -123,8 +131,7 @@ function format_data
 
 ### 5 È¥µôºÚÃûµ¥ÖĞµÄobj£¬È¥µôºÚÃûµ¥ÖĞµÄtag£¬ÏŞÖÆtagÊıÎª5. ×é³É: ×î¸ß´ÊÆµµÄ3¸ö + ÀàĞÍ2/1¸ö
 	echo "5. ¹ıÂËtagºÚÃûµ¥£¬ÏŞÖÆtagÊıÎª5¸ö...";
-#	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type}.tag_modified ${data_tag_type}.filter_tags ${white_tag}
-	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq} ${data_tag_type} ${data_tag_type}.filter_tags ${white_tag}
+	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq} ${data_tag_type} ${filter_tags} ${white_tag}
 	if [ ${?} -ne 0 ]
 	then
 		echo "¹ıÂËºÚÃûµ¥tagÊ§°Ü£¡";
@@ -133,13 +140,13 @@ function format_data
 
 ### **.dingxiang ÔÚ·ÖÀàĞÅÏ¢ºóÔö¼ÓÃ¿¸öÕ¾µãĞÅÏ¢, ¸üĞÂÃ¿¸öÀà±ğĞèÒªµÄÍ¼Æ¬ÊıÁ¿µÄÅäÖ
 	if [ ${prefix} = "dingxiang" ]; then
-		update_type_and_demand ${data_tag_type}.filter_tags ${temp}.filter_tags_tmp
+		update_type_and_demand ${filter_tags} 
 	fi
 
 
 ### 6  Ëæ»ú´òÉ¢obj
 	echo "6. Ëæ»ú´òÉ¢obj...";
-	rand_obj ${data_tag_type}.filter_tags ${temp} ${out}.without_path
+	rand_obj ${filter_tags} ${temp} ${out_without_path}
 	if [ ${?} -ne 0 ]
 	then
 		echo "Ëæ»ú´òÉ¢objÊ§°Ü!";
@@ -148,7 +155,7 @@ function format_data
 
 ### 7 °Ñ±¾µØÂ·¾¶ºÏ path ºÏ²¢½øÈ¥
 	echo "7. ºÏ²¢Í¼Æ¬Â·¾¶Êı¾İ...";
-	merge_path ${path_data} ${out}.without_path  ${out}  ${urls_to_download} ${black_objs}
+	merge_path ${path_data} ${out_without_path}  ${out}  ${urls_to_download} ${black_objs}
 	if [ ${?} -ne 0 ]
 	then
 		echo "ºÏ²¢Í¼Æ¬Â·¾¶Êı¾İÊ§°Ü£¡";
@@ -157,7 +164,7 @@ function format_data
 	
 ### 8 Í³¼Ætag¸öÊıÇé¿ö
 	echo "8. Í³¼Ætag¸öÊıÇé¿ö..."
-	stat_tags_final_objs ${modified_tag} ${pm_tags} ${out}.without_path ${out}  ${temp}.final_tag_stat
+	stat_tags_final_objs ${modified_tag} ${pm_tags} ${out_without_path} ${out}  ${final_tag_stat}
 	if [ ${?} -ne 0 ]
 	then
 		echo "Í³¼Ætag¸öÊıÊ§°Ü!";
@@ -166,13 +173,13 @@ function format_data
 
 ### 9 ºÏ²¢tag¸öÊıÇé¿ö	
 	echo "9. ºÏ²¢tag¸öÊıÇé¿ö..."
-	merge_tags_stat ${modified_tag} ${temp}.stat_tag ${temp}.final_tag_stat  ${out_tag_stat}
+	merge_tags_stat ${modified_tag} ${stat_tag_res} ${final_tag_stat} ${out_tag_stat}
 	if [ ${?} -ne 0 ]
 	then
 		echo "ºÏ²¢tagÍ³¼ÆÇé¿öÊ§°Ü!";
 		exit 1;
 	fi;
 	
-	echo -e "¸ñÊ½»¯${suffix}Êı¾İÍê³É£¬Êä³öÊı¾İÎª ${out}"
+	echo -e "[Êä³ö]	¸ñÊ½»¯${suffix}Êı¾İÍê³É£¬Êä³öÊı¾İÎª ${out}"
 }
 
