@@ -1,11 +1,9 @@
-tuqu_baidu
-==========
-
 部署步骤:
 1. 拷贝所有文件到服务器机器
    [注意] ./data/目录下有个res目录，存放的数据文件相当大，可以手动拷贝，但是形成的目录结构应为: ./data/res/46/***
 2. 日志存放在tuqu_data/log/ 下
 3. 更改 tuqu_data/conf/upload_conf 里uid为灌图uid,domain为上传目的机器
+4. shell/guantu.sh 为总控启动脚本，需要在tuqu_data/下定时执行。
 
 [目录说明]
 conf		配置目录[不可删]
@@ -36,8 +34,8 @@ Data_Produce |-- produce_data_control.sh
 	./data/input/used_objs							已经使用的图片				格式: obj_url \t tags
 
 整体输出:
-	./data/output/data_for_tuqu/data_index.YYMMDD	输出到图趣的文本			格式: obj_url \t from_url \t tags
-	./data/input/used_objs							[更新]更新已经使用的图片			格式: obj_url \t tags
+	./data/output/data_for_tuqu/data_index.YYMMDD	输出到图趣的文本			格式: obj_url \t tags \t from_url \t filePath
+	./data/input/used_objs							[更新]更新已经使用的图片	格式: obj_url \t tags
 
 配置文件说明:
 	./conf/mine_type_demand_amount					每天各类标签的需求的数量	格式: type \t amount \t total
@@ -48,4 +46,17 @@ Data_Produce |-- produce_data_control.sh
 
 灌库脚本说明
 ==============
-大力补充
+整体输入：
+	./data/output/data_for_tuqu/data_index.YYMMDD 	灌图需要的索引		格式：objurl \t tags \t fromurl \t filePath
+
+主控流程：
+	./shell/upload_img_shell/start.sh
+
+配置文件：
+	./conf/upload_domain		图片上传的目的主机  
+	./conf/upload_uid			上传图片所用的uid
+
+日志文件：
+	./log/uploadFromFile.sh.log.XXXXXXX
+
+
