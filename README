@@ -1,0 +1,51 @@
+tuqu_baidu
+==========
+
+部署步骤:
+1. 拷贝所有文件到服务器机器
+   [注意] ./data/目录下有个res目录，存放的数据文件相当大，可以手动拷贝，但是形成的目录结构应为: ./data/res/46/***
+2. 日志存放在tuqu_data/log/ 下
+3. 更改 tuqu_data/conf/upload_conf 里uid为灌图uid,domain为上传目的机器
+
+[目录说明]
+conf		配置目录[不可删]
+shell		脚本文件[不可删]
+log			日志文件[可删]
+data		数据目录[不可删]
+  |_ res	图片数据目录[不可删]
+  |_ input	输入文件[不可删]
+  |_ output	输出文件[不可删]
+  |_ swap	交换文件[不可删]
+  |_ temp	临时文件[可删, 但保留temp空目录]
+
+筛图脚本说明
+==============
+代码结构:
+
+Data_Produce |-- produce_data_control.sh
+					|-- select_data.sh
+
+之后每天定时执行./shell/produce_img_shell/produce_data_control.sh
+
+主控制流程:
+	./shell/produce_img_shell/produce_data_control.sh	(需要每天定时执行的脚本)
+
+整体输入: 
+	./data/swap/dingxiang_final_objs_data			定向数据输入				格式: obj_url \t tags \t from_urls \t local_path
+	./data/swap/mine_final_objs_data				挖掘数据输入				格式: obj_url \t tags \t from_urls \t local_path
+	./data/input/used_objs							已经使用的图片				格式: obj_url \t tags
+
+整体输出:
+	./data/output/data_for_tuqu/data_index.YYMMDD	输出到图趣的文本			格式: obj_url \t from_url \t tags
+	./data/input/used_objs							[更新]更新已经使用的图片			格式: obj_url \t tags
+
+配置文件说明:
+	./conf/mine_type_demand_amount					每天各类标签的需求的数量	格式: type \t amount \t total
+	./conf/dingxiang_type_demand_amount				每天各类标签的需求的数量	格式: type \t amount \t total
+
+日志文件:
+	./log/produce_img.log
+
+灌库脚本说明
+==============
+大力补充

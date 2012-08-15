@@ -207,18 +207,27 @@ fi
 select_data "dingxiang"
 if [ $? -ne 0 ]; then
 	echo "[错误]	选择定向数据失败."
+	exit 1
 fi
 
 #	3. 选择挖掘数据
 select_data "mine"
 if [ $? -ne 0 ]; then
 	echo "[错误]	挖掘数据选择失败."
+	exit 1
 fi
 
 #	4. 合并定向数据和挖掘数据并打散
 merge_dingxiang_mine
 if [ $? -ne 0 ]; then
 	echo "[错误]	合并定向数据和挖掘数据失败."
+	exit 1
+fi
+
+#	5. 删除临时文件, 删除错误时不用退出
+rm -rf ./data/temp/*
+if [ $? -ne 0 ]; then
+	echo "[错误]	删除临时文件失败."
 fi
 
 echo -e "[结束时间]	`date` "
