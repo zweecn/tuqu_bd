@@ -63,7 +63,9 @@ function format_data
 
 # 修改标签为其它标签 即 map
 	local modified_tag="./conf/"${prefix}"_tag_modified"
-	
+	local pre_modi_tag="./conf/pre_modi_tag"
+
+	local clear_char="./conf/clear_char"
 # 类型索引
 	local type_index="./conf/type_index"
 
@@ -92,39 +94,37 @@ function format_data
 		exit 1;
 	fi;
 
-### 2. 计算各个tag的freq
-	echo "2. 计算tag频率...";
-	cal_tag_freq ${temp}.clean_tag ${tag_freq}
+### 2. 修改一些tag为另外的tag（根据PM的配置: conf/*_tag_modified)
+	echo "2. 修改tag..."
+	pre_tag_modify ${pre_modi_tag} ${clear_char} ${temp}.clean_tag ${temp}.modi_tags
+	if [ ${?} -ne 0 ]
+	then
+		echo "修改tag失败！";
+		exit 1;
+	fi;
+
+### 3. 计算各个tag的freq
+	echo "3. 计算tag频率...";
+	cal_tag_freq ${temp}.modi_tags ${tag_freq}
 	if [ ${?} -ne 0 ]
 	then
 		echo "计算tag频率失败!";
 		exit 1;
 	fi;
 
-### 3. 确定pm的大分类
-	echo "3. 确定PM大分类...";
-#	determine_tag_type ${temp}.clean_tag ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type
-	determine_tag_type ${temp}.clean_tag ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type ${pm_tags} ${temp}.stat_tag
+### 4. 确定pm的大分类
+	echo "4. 确定PM大分类...";
+	determine_tag_type ${temp}.modi_tags ${white_tag} ${data_tag_type} ${temp}.type_conflict ${temp}.no_type ${pm_tags} ${temp}.stat_tag
 	if [ ${?} -ne 0 ]
 	then
 		echo "确定obj所属的大分类失败！";
 		exit 1;
 	fi;
 
-### 4 修改一些tag为另外的tag（根据PM的配置: conf/*_tag_modified)
-	echo "4. 修改tag..."
-#	tag_modify ${tag_freq} ${modified_tag} ${data_tag_type} ${temp}.tag_modified ${tag_freq}.tag_modified
-	tag_modify ${tag_freq} ${modified_tag} ${data_tag_type} ${data_tag_type}.tag_modified ${tag_freq}.tag_modified
-	if [ ${?} -ne 0 ]
-	then
-		echo "修改tag失败!";
-		exit 1;
-	fi;
-
 ### 5 去掉黑名单中的obj，去掉黑名单中的tag，限制tag数为5. 组成: 最高词频的3个 + 类型2/1个
 	echo "5. 过滤tag黑名单，限制tag数为5个...";
-#	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type} ${data_tag_type}.filter_tags;
-	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type}.tag_modified ${data_tag_type}.filter_tags ${white_tag}
+#	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq}.tag_modified ${data_tag_type}.tag_modified ${data_tag_type}.filter_tags ${white_tag}
+	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq} ${data_tag_type} ${data_tag_type}.filter_tags ${white_tag}
 	if [ ${?} -ne 0 ]
 	then
 		echo "过滤黑名单tag失败！";
@@ -172,17 +172,7 @@ function format_data
 		echo "合并tag统计情况失败!";
 		exit 1;
 	fi;
-
-### 10 去掉HTML字符
-	echo "10. 去掉非法HTML字符..."
-	clear_html ${out} 
-	if [ ${?} -ne 0 ]
-	then
-		echo "去掉HTML字符失败!";
-		exit 1;
-	fi;
-
+	
 	echo -e "格式化${suffix}数据完成，输出数据为 ${out}"
 }
-
 

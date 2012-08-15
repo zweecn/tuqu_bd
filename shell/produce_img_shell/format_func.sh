@@ -51,6 +51,46 @@ function clean_tag
 	echo -e "	没有tag的图片，输出为 ${no_tag} `wc -l ${no_tag} | cut -d ' ' -f 1` 行"
 }
 
+### 2. 修改tag
+function pre_tag_modify
+{
+	local tag_map=$1
+	local clear_char=$2
+	local data=$3
+	local out=$4
+	
+	awk -F '\t' '{
+		if (FILENAME == ARGV[1]) {
+			tag_modi[$1] = $2;
+		} else if (FILENAME == ARGV[2]) {
+			clear_char[$1] = 1;
+		} else {
+			for (c in clear_char) {
+				gsub(c, "", $3);
+			}
+			n = split($3, tags, ",");
+			new_tag = "";
+			for (i in tags) {
+				tag = tags[i];
+				if (tag in tag_modi) {
+					tag = tag_modi[tag]; 
+				}
+				if (tag == "") {
+					continue;
+				}
+				if (new_tag == "") {
+					new_tag = tag;
+				} else {
+					new_tag = new_tag","tag;
+				}
+			}
+			print $1"\t"$2"\t"new_tag;
+		}
+	}' ${tag_map} ${clear_char} ${data} > ${out}
+	echo -e "	修改tag后输出文件为 ${out} `wc -l ${out} | cut -d ' ' -f 1` 行"
+}
+
+
 ### 2. 计算tag频率
 function cal_tag_freq
 {
@@ -69,73 +109,6 @@ function cal_tag_freq
 	}' ${data_clean_tag} > ${tag_freq}
 	echo -e "	计算tag频率输出为 ${tag_freq}"
 }
-
-### 3. 确定pm的大分类
-#function determine_tag_type
-#{
-#	echo -e "	确定PM大分类的输入文件是 $1 `wc -l $1 | cut -d ' ' -f 1` 行"
-#   	local func_input=$1;
-#   	local func_tag_type_conf=$2;
-#    local func_output=$3;
-#    local func_conflict_output=$4;
-#	local no_type_out=$5;
-#    awk -F '\t' -v conflict_output="${func_conflict_output}" -v no_out="${no_type_out}" '{
-#        if(FILENAME==ARGV[1]){
-#            tag_type[$1]=$2;
-#        }else if(FILENAME==ARGV[2]){
-#            tag_freq[$1]=$2;
-#        }else{
-#            split($3,tags,",");
-#			delete types;
-#            for(i in tags){
-#                tag=tags[i];
-#                if(tag!="" && (tag in tag_type)){ # tag必须在白名单中
-#                    a_type=tag_type[tag];
-#                    if(a_type!="" &&  tag_freq[types[a_type]]<tag_freq[tag]){  ## 同一类型下的最高频率
-#                         ##print tag"*"a_type"*"tag_freq[types[a_type]]"*"tag_freq[tag];
-#                         types[a_type]=tag;
-#                    }
-#                }
-#            }
-#            conflict_mark=0;
-#            top_freq_tag=""; # 最高频率的tag
-#            for(type in types){
-#                if(top_freq_tag=="")
-#                    top_freq_tag=types[type];
-#                else{
-#                    #选tag频率最高的类型作为该obj的类型
-#                    tag=types[type];
-#                    if(tag_freq[tag]>tag_freq[top_freq_tag])
-#                        top_freq_tag=tag;
-#                    conflict_mark=1;
-#                }
-#            }
-#            ##print $3"*"top_freq_tag"*"tag_type[top_freq_tag];
-#			
-#			if(conflict_mark==1){ #前后数据有10W条冲突的,有必要挖掘出来
-#                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
-#            } else if(top_freq_tag!=""){
-#                # objURL    fromURL tags    top_freq_tag    type
-#                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
-#            } else {
-#                print $0 > no_out;
-#			}
-######################
-##            if(top_freq_tag!=""){
-##                # objURL    fromURL tags    top_freq_tag    type
-##                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag];
-##            } 
-##			 if(conflict_mark==1){ #前后数据有10W条冲突的,有必要挖掘出来
-##                print $1"\t"$2"\t"$3"\t"top_freq_tag"\t"tag_type[top_freq_tag] > conflict_output;
-##			 }
-########################################################################################################
-#
-#        }
-#    }' ${func_tag_type_conf} ${tag_freq}  ${func_input} > ${func_output}
-#	echo -e "	确定PM大分类后，输出文件为 ${func_output} `wc -l ${func_output} | cut -d' ' -f 1` 行"
-#	echo -e	"	冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
-#	echo -e	"	没被分类的为 ${no_type_out} `wc -l ${no_type_out} | cut -d' ' -f 1` 行"
-#}
 
 function determine_tag_type
 {
@@ -221,50 +194,6 @@ function determine_tag_type
 	echo -e	"	冲突文件为 ${func_conflict_output} `wc -l ${func_conflict_output} | cut -d' ' -f 1` 行"
 	echo -e	"	没被分类的为 ${no_type_out} `wc -l ${no_type_out} | cut -d' ' -f 1` 行"
 	echo -e "	tag 统计结果输出为 ${stat_tag}"
-}
-
-
-### 4 修改一些tag为另外的tag（根据PM的配置: conf/*_tag_modified)
-function tag_modify
-{
-	local tag_freq=$1
-	local suffix_modified_tag=$2
-	local suffix_data_tag_type=$3
-	local tag_modify_out=$4
-	local tag_freq_modified=$5
-	awk -F '\t' -v out="${tag_modify_out}" '{
-		if(FILENAME==ARGV[1]){
-			tag_freq[$1]=$2;
-		}else if(FILENAME==ARGV[2]){
-			suffix_tag_change[$1]=$2;
-			if(!($2 in tag_freq))
-				tag_freq[$2]=tag_freq[$1];
-		}else if(FILENAME==ARGV[3]){
-			split($3,tags,",");
-			tag_str="";
-			for(i in tags){
-				tag=tags[i];
-#				if (tag == "欧美风") {
-#					print tag"\t"suffix_tag_change[tag] > "o1";
-#				}
-				if(tag in suffix_tag_change){
-					tag=suffix_tag_change[tag];
-					
-				}
-				if(tag_str=="")
-					tag_str=tag;
-				else
-					tag_str=tag_str","tag;
-			}
-			top_tag=($4 in suffix_tag_change)?suffix_tag_change[$4]:$4;
-			print $1"\t"$2"\t"tag_str"\t"top_tag"\t"$5 > out;
-		}	
-	} END {
-		for(tag in tag_freq){
-				print tag"\t"tag_freq[tag];
-		}
-	}' ${tag_freq} ${suffix_modified_tag} ${suffix_data_tag_type} > ${tag_freq_modified}
-	echo -e "	修改一些tag为另外的tag后，输出文件为 ${tag_modify_out} `wc -l ${tag_modify_out} | cut -d ' ' -f 1` 行"
 }
 
 
@@ -371,62 +300,17 @@ function remove_black_tag
 			}
 	
 			delete final_tags;
-			if (len < 3) {
-				for (i in save_tag) {
-					final_tags[i] = 1;
-				}
-			}
-			
-######################################################################			
-#	修改策略前的版本
-#			
-#			type=type_index[$5];
-#			tag1="";
-#			tag2="";
-#			tag3="";
-#			for(i in tags){
-#				tag=tags[i];
-#				# 取4个最高频的tag
-#				if(tag!=top_freq_tag && tag!=type && !(tag in tag_black)){
-#					if(tag1=="" || tag_freq[tag]>tag_freq[tag1]){
-#						tag1=tag;
-#					}else if(tag2=="" || tag_freq[tag]>tag_freq[tag2]){
-#						tag2=tag;
-#					}else if(tag3=="" || tag_freq[tag]>tag_freq[tag3]){
-#						tag3=tag;
-#					}
-#				}
-#			}
-#			delete final_tags;
-#			if(!(top_freq_tag in tag_black)){
-#				final_tags[top_freq_tag];
-#			}
-#
-#####################################################################			
-## 			把 时尚搭配服饰 拆成  时尚搭配 和 服饰
-#			if($5==4){
-#				final_tags["时尚搭配"];
-#				final_tags["服饰"];
-#			}else if($5==2){   ## 把 风景/旅行 拆成 风景 和 旅行
-#				final_tags["风景"];
-#				final_tags["旅行"];
-#			}else if($5!=0){
-#				final_tags[type_index[$5]];
-#			}
-######################################################################			
-			
-			delete final_tags;
 			if($5!=0){
 				final_tags[type_index[$5]];
 			}
 			if(!(top_freq_tag in tag_black)){
 				final_tags[top_freq_tag];	
 			}
-			if(tag1!="") 
+			if(tag1!="" && tag_freq[tag1] >= 200) 
 				final_tags[tag1];
-			if(tag2!="")
+			if(tag2!="" && tag_freq[tag2] >= 200)
 				final_tags[tag2];
-			if(tag3!="")
+			if(tag3!="" && tag_freq[tag3] >= 200)
 				final_tags[tag3];
 			tag_cnt = 0;
 			tag_str="";
@@ -616,21 +500,15 @@ function merge_tags_stat
 	echo -e "	格式: tag PM评估的tag次数 去掉无tag后的统计个数 冲突的图片tag统计 没有被分类的数据tag统计 可以确定PM大类的tag统计 选择出有效数据tag统计(含未下载) 有效数据统计(完全下载) tag替换(可选)"
 }
 
-
 function clear_html
 {
-	local input=$1;
-	# 非法的HTML字符集合
-	local htm_char=(\&yuml\; \&yen\; \&Yacute\; \&yacute\; \&Uuml\; \&uuml\; \&uml\; \&Ugrave\; \&ugrave\; \&Ucirc\; \&ucirc\; \&Uacute\; \&uacute\; \&times\; \&THORN\; \&thorn\; \&szlig\; \&sup3\; \&sup2\; \&sup1\; \&shy\; \&sect\; \&reg\; \&raquo\; \&pound\; \&plusmn\; \&para\; \&Ouml\; \&ouml\; \&Otilde\; \&otilde\; \&Oslash\; \&oslash\; \&ordm\; \&ordf\; \&Ograve\; \&ograve\; \&Ocirc\; \&ocirc\; \&Oacute\; \&oacute\; \&Ntilde\; \&ntilde\; \&not \&nbsp\; \&middot\; \&micro\; \&macr\; \&lt\; \&laquo\; \&Iuml\; \&iuml\; \&iquest\; \&Igrave\; \&igrave\; \&iexcl\; \&Icirc\; \&icirc\; \&Iacute\; \&iacute\; \&gt\; \&frac34\; \&frac14\; \&frac12\; \&Euml\; \&euml\; \&ETH\; \&eth\; \&Egrave\; \&egrave\; \&Ecirc\; \&ecirc\; \&Eacute\; \&eacute\; \&divide\; \&deg\; \&curren\; \&copy\; \&cent\; \&cedil\; \&Ccedil\; \&ccedil\; \&brvbar\; \&Auml\; \&auml\; \&Atilde\; \&atilde\; \&Aring\; \&aring\; \&amp\; \&Agrave\; \&agrave\; \&AElig\; \&aelig\; \&acute\; \&Acirc\; \&acirc\; \&Aacute\; \&aacute\;)
-	# 替换为的字符
-	replace_char=""
+	local data=$1
+	local char_file=$2	
 
-	echo "	开始替换非法的HTML字符..."
-
-	for htm in ${htm_char[@]}
+	while read c
 	do
-		sed -i -e "s#${htm}#${replace_char}#g" ${input}
-	done
+		sed -i -e "s#${c}#${replace_char}#g" ${data}
+	done < ${char_file}
 
-	echo "	HTML非法字符的替换完成，输出文件为 ${input}"
+	echo "	HTML非法字符的替换完成，输出文件为 ${data}"
 }
