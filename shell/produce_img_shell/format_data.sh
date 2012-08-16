@@ -94,13 +94,13 @@ function format_data
 	fi
 
 ### 1. 清洗 tag，去掉没有tag 的obj，把tag中的空格替换为_，用,分割tag,去掉重复的tag,去掉空tag
-	echo "1. 清洗tag...";
+	echo "1. 清洗tag..."
 	clean_tag ${in} ${tag_cleaned} ${no_tag}
 	if [ ${?} -ne 0 ]
 	then
 		echo "清洗tag失败！";
 		exit 1;
-	fi;
+	fi
 
 ### 2. 修改一些tag为另外的tag（根据PM的配置: conf/*_tag_modified)
 	echo "2. 修改tag..."

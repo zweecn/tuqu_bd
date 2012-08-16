@@ -58,16 +58,24 @@ function pre_tag_modify
 	local clear_char=$2
 	local data=$3
 	local out=$4
-	
+	local cmd=${clear_char}.cmd
+
+	awk -F '\t' '{
+		old_str[$1] = 1;
+	} END {
+		for (old in old_str) {
+			print "s/" old "//g";
+		}
+	}' ${clear_char} > ${cmd}
+	sed -f ${cmd}  ${data} > ${out}.tmp
+	rm -rf ${cmd}
+
 	awk -F '\t' '{
 		if (FILENAME == ARGV[1]) {
 			tag_modi[$1] = $2;
 		} else if (FILENAME == ARGV[2]) {
 			clear_char[$1] = 1;
 		} else {
-			for (c in clear_char) {
-				gsub(c, "", $3);
-			}
 			n = split($3, tags, ",");
 			new_tag = "";
 			for (i in tags) {
@@ -86,12 +94,12 @@ function pre_tag_modify
 			}
 			print $1"\t"$2"\t"new_tag;
 		}
-	}' ${tag_map} ${clear_char} ${data} > ${out}
+	}' ${tag_map} ${clear_char} ${out}.tmp > ${out}
 	echo -e "	修改tag后输出文件为 ${out} `wc -l ${out} | cut -d ' ' -f 1` 行"
 }
 
 
-### 2. 计算tag频率
+### 3. 计算tag频率
 function cal_tag_freq
 {
 	local data_clean_tag=$1
@@ -110,6 +118,7 @@ function cal_tag_freq
 	echo -e "	计算tag频率输出为 ${tag_freq}"
 }
 
+### 4. 确定PM大分类
 function determine_tag_type
 {
 	echo -e "	确定PM大分类的输入文件是 $1 `wc -l $1 | cut -d ' ' -f 1` 行"
