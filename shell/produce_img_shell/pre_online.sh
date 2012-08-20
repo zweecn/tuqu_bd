@@ -27,13 +27,15 @@ rm -rf data/temp/*
 
 # 	1.	合作（定向）数据 第一步格式化
 test -f ${is_new_data} && 
-(echo "[STEP 1] 提取定向数据 obj_url / from_url / tag ..."
-./shell/produce_img_shell/normalize_dingxiang_data.sh
-if [ ${?} -ne 0 ]
-then 
-    echo "[错误]	定向数据格式化失败."
-    exit 1;
-fi)
+{
+	echo "[STEP 1] 提取定向数据 obj_url / from_url / tag ..."
+	./shell/produce_img_shell/normalize_dingxiang_data.sh
+	if [ ${?} -ne 0 ]
+	then 
+		echo "[错误]	定向数据格式化失败."
+		exit 1;
+	fi
+}
 
 #	2.	进一步格式化定向数据，包括筛选和替换等等
 echo "[STEP 2] 格式化定向数据 ..."
@@ -64,13 +66,15 @@ echo "--------------------------------------------------------------------------
 
 # 	1.	挖掘数据 第一步格式化
 test -f ${is_new_data} && 
-(echo "[STEP 1] 提取挖掘数据 obj_url / from_url / tag ..."
-./shell/produce_img_shell/normalize_mining_data.sh
-if [ ${?} -ne 0 ]
-then 
-    echo "[错误]	挖掘数据格式化失败."
-    exit 1;
-fi)
+{
+	echo "[STEP 1] 提取挖掘数据 obj_url / from_url / tag ..."
+	./shell/produce_img_shell/normalize_mining_data.sh
+	if [ ${?} -ne 0 ]
+	then 
+		echo "[错误]	挖掘数据格式化失败."
+		exit 1;
+	fi
+}
 
 #	2.	进一步格式化挖掘数据，包括筛选和替换等等
 echo "[STEP 2] 格式化挖掘数据 ..."

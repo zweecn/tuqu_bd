@@ -24,15 +24,19 @@
 #
 #[ -f 1 ] && ( fun || echo "Failed")
 
-cmd=data/temp/sed_cmd
+#cmd=data/temp/sed_cmd
+#
+#awk -F '\t' '{
+#	old_chars[$1] = 1;
+#
+#} END {
+#	for (old in old_chars) {
+#		print "s/" old "//g";
+#	}
+#}' conf/clear_char > ${cmd}
+#
+#sed -f ${cmd}  1 > 2 
 
-awk -F '\t' '{
-	old_chars[$1] = 1;
-
-} END {
-	for (old in old_chars) {
-		print "s/" old "//g";
-	}
-}' conf/clear_char > ${cmd}
-
-sed -f ${cmd}  1 > 2 
+n=0
+b=$((${n:-0}))
+echo $b
