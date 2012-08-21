@@ -2,6 +2,7 @@
 
 mine_all="data/bad_tag_data/pre_online.mine.tag_modified"
 selected="data/bad_tag_data/selected_data"
+not_used="data/bad_tag_data/not_used"
 no_pass_tag_out="data/bad_tag_data/no_pass"
 tag_cnt="data/bad_tag_data/tag_cnt"
 pinggu_out="data/bad_tag_data/pinggu/"
@@ -12,30 +13,59 @@ no_pass_tag="conf/mine_no_pass_tags"
 obj_black="conf/obj_black_list"
 tag_black="conf/err_tag"
 
-echo "Cal no pass ..."
+echo "Select unused..." 
 awk -F '\t' '{
 	if (FILENAME == ARGV[1]) {
-		no_pass_tag[$1] = 1;
-	} else if (FILENAME == ARGV[2] || FILENAME == ARGV[3]) {
-		selected[$1] = 1;	
+		used[$1] = 1;
+	} else if (FILENAME == ARGV[2]) {
+		tag_black[$1] = 1;
 	} else {
-		if ($1 in selected)
+		if ($1 in used)
 			next;
-		if (index($2, "duitang.com") || index($2, "mishang.com") || index($1, "pinfun.com"))
-			next;
-		split($3, tags, ",");
+		split($NF, tags, ",");
 		tag_str = "";
 		for (i in tags) {
 			tag = tags[i];
-			if (tag in no_pass_tag){
-				print;
-				break;
+			if (tag in tag_black) {
+				continue;	
 			}
-		}
+			if (tag_str == "") 
+				tag_str = tag;
+			else 
+				tag_str = tag_str ","  tag;
+		}	
+		if (tag_str != "") 
+			print $1 "\t" $2 "\t" tag_str;
 	}
 
-}' $no_pass_tag $selected ${obj_black} $mine_all  > $no_pass_tag_out
+}' ${selected} ${tag_black} ${mine_all} > $not_used
 
+mv $not_used $no_pass_tag_out
+
+#echo "Cal no pass ..."
+#awk -F '\t' '{
+#	if (FILENAME == ARGV[1]) {
+#		no_pass_tag[$1] = 1;
+#	} else if (FILENAME == ARGV[2] || FILENAME == ARGV[3]) {
+#		selected[$1] = 1;	
+#	} else {
+#		if ($1 in selected)
+#			next;
+#		if (index($2, "duitang.com") || index($1, "mishang.com") || index($1, "pinfun.com"))
+#			next;
+#		split($3, tags, ",");
+#		tag_str = "";
+#		for (i in tags) {
+#			tag = tags[i];
+#			if (tag in no_pass_tag){
+#				print;
+#				break;
+#			}
+#		}
+#	}
+#
+#}' $no_pass_tag $selected ${obj_black} $mine_all  > $no_pass_tag_out
+#
 
 echo "Cal tag cnt ..."
 awk -F '\t' '{ 
