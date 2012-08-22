@@ -187,7 +187,7 @@ then
 fi
 
 ##5.0 合并query和点击两种方法得到的人物的需求分布
-~/python/bin/python merge_query_click.py  ./data/person_type1.txt  ./data/person_type2.txt ./temp/person_category.txt ${TYPE_NUM}
+##~/python/bin/python merge_query_click.py  ./data/person_type1.txt  ./data/person_type2.txt ./temp/person_category.txt ${TYPE_NUM}
 python ./shell/merge_query_click.py  ./data/person_type1.txt  ./data/person_type2.txt ./temp/person_category.txt ${TYPE_NUM}
 if [ $? -ne 0 ]
 then
@@ -245,7 +245,7 @@ cp ./temp/person_category.txt ./data/person_category.txt
 
 
 ### 7.0 传输到线上
-#cp ./data/person_catory.txt  /home/video/video_class/video_word/conf/type_word/
+#cp ./data/person_category.txt  /home/video/video_class/video_word/conf/type_word/
 
 rm -rf  ./temp/get_person_type.flag
 exit 0
