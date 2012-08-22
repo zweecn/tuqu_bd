@@ -1,0 +1,25 @@
+功能: 
+	图趣数据挖掘, 为 http://tuqu.baidu.com/ 提供数据.
+
+整体输入: 
+	dump大库数据，hadoop上的目录: /user/ns-image/urlselector.20120525_build4/dump_data/
+整体输出: 
+	数据挖掘的输出数据: ./data/output.thumb
+	
+运行流程:
+	1. 用 hadoop_tag_parser.sh 在 hadoop 跑出数据，生成的数据放到拷贝到本地 ./data/tag_parser.out 文件，包括28个字段，字段之间采用\t分割. 格式为
+	objurl \t furl \t width \t height \t img_width \t img_height \t cont_sign1\t cont_sign2 \t obj_type \t sensitive \t is_gif_img \t is_gray_img \t ct0 \t ct2 \t at \t alt \t title \t real_title \t mypos \t keyword \t page_type \t pt_number \t usable \t uniq \t src_type \t tags \t desc \t album
+	./data/merge文件也有hadoop跑出, 有26个字段，不包含意上28个字段中的 desc 和 album 字段
+	2. 本地运行./shell/mine_tag_control.sh 脚本，输出文件 ./data/output.thumb 
+
+代码结构:
+Hadoop		|-- ./hadoop_shell/maper_tag_parsher.sh 
+			|-- ./hadoop_shell/hadoop_tag_parser.sh
+Data_Mine	|-- ./shell/mine_tag_control.sh
+					|-- ./shell/select_valid_src.sh
+					|-- ./shell/mine_related_tags.sh
+					|-- ./shell/remove_useless_info.sh
+					|-- ./shell/add_sus_tag.sh
+					|-- ./shell/add_thumb.sh
+
+./shell/backup目录存放临时脚本文件
