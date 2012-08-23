@@ -2,6 +2,9 @@
 
 set -x
 
+echo -e "[TIME START] `date +%Y%m%d-%H:%M:%S`"
+start_time=`date +%s`
+
 source conf/common.conf
 
 #mysql_path=/home/video/database/mysql
@@ -64,13 +67,20 @@ cp ./conf/human_name.txt ./data/backup/human_name.txt.$(date +%Y%m%d)
 wget -O ./temp/human_name.txt ${human_name_server}
 if [ $? -ne 0 ]
 then
-	send_error "合并新老人名数据失败"
+	send_error "下载新老人名数据失败"
 	exit 1
 fi
+cut -d'	' -f1 ./temp/human_name.txt | sort | uniq > ./data/backup/human_name.txt.new.$(date +%Y%m%d)
+if [ $? -ne 0 ]
+then
+	send_error "备份新人名数据失败"
+	exit 1
+fi
+
 cut -d'	' -f 1 ./conf/human_name.txt ./temp/human_name.txt | sort | uniq > ./temp/human_name_merged.txt
 if [ $? -ne 0 ]
 then
-	send_error "合并新老人名数据失败1"
+	send_error "合并新老人名数据失败"
 	exit 1
 fi
 cp ./temp/human_name_merged.txt conf/human_name.txt
@@ -209,7 +219,8 @@ fi
 ## 5.1 和原有的merge：冲突的用新的替代旧的，否则直接加上；
 ## eg: 旧的:A/B/C; 新的：B1/C1/D ; =>  A/B1/C1/D;
 old="./data/person_category.txt"
-new="./temp/person_category.txt"
+new="./temp/tmp.txt"
+cp $new ./data/backup/person_category.txt.new.$(date +%Y%m%d)
 awk -F '\t' '{
 	if (FILENAME == ARGV[1]) {
 		new_person[$1] = $0;
@@ -240,9 +251,7 @@ do
 		rm -rf ${file}
 	fi
 done
-
-cp ./temp/person_category.txt ./data/person_category.txt
-
+cp $new $old
 
 ### 7.0 传输到线上
 #cp ./data/person_category.txt  /home/video/video_class/video_word/conf/type_word/
@@ -250,3 +259,5 @@ cp ./temp/person_category.txt ./data/person_category.txt
 rm -rf  ./temp/get_person_type.flag
 exit 0
 
+finished_time=`date +%s`
+echo -e "[TIME FINISHED] `date +%Y%m%d-%H:%M:%S` [COST] $(($finished_time - $start_time)) seconds." 
