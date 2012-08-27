@@ -18,11 +18,11 @@ output="./data/output"
 today=`date +%Y%m%d`
 ###################################################################################
 
-dx_final_objs=${swap}"/dingxiang_final_objs_data"
-mi_final_objs=${swap}"/mine_final_objs_data"
+dx_final_objs=${swap}"/dingxiang_final_objs_data.without_path"
+mi_final_objs=${swap}"/mine_final_objs_data.without_path"
 need="conf/img.need"
 used_obj=${output}"/used_objs"
-out=${swap}"/merge_final_objs_data"
+out=${swap}"/merge_final_objs_data.without_path"
 
 awk -F '\t' '{
 	if (FILENAME == ARGV[1]) {

@@ -87,37 +87,37 @@ black_obj="./conf/obj_black_list"
 #}' ${temp}.gaoxiaoo | sort -n -r -k2 > ${temp}.tag_cnt 
 #
 #echo "tag 词频出现的文件输出到 " ${temp}.tag_cnt
-#
-#awk -F '\t' -v out="${output_dir}" '{
-#	if (FILENAME == ARGV[1]) {
-#		at[$1] = $2;	
-#	} else {
-#		delete tags;
-#		split($3, tags, "\\$\\$");
-#		if ($3 == "")
-#			print ;
-#		cnt++;
-#		for (i in tags) {
-#			if (tags[i] == "") {
-#				continue;
-#			}
-#			if (!(tags[i] in at)) {
-#				continue;
-#			}
-#			if ($1 != "") {
-#				print $1"\t"$1"\t"$2"\t"1 > out"/"tags[i]".txt";
-#			}
-#		}
-#	}
-#} END {
-#	print "Total:" cnt;
-#}' ${temp}.tag_cnt ${temp}.gaoxiaoo
-#
-#echo -e "需要评估的tag输出到 ${output_dir}"
-#
-#echo "Finish generated."
-#
-#
+
+awk -F '\t' -v out="${output_dir}" '{
+	if (FILENAME == ARGV[1]) {
+		at[$1] = $2;	
+	} else {
+		delete tags;
+		split($3, tags, "\\$\\$");
+		if ($3 == "")
+			print ;
+		cnt++;
+		for (i in tags) {
+			if (tags[i] == "") {
+				continue;
+			}
+			if (!(tags[i] in at)) {
+				continue;
+			}
+			if ($1 != "") {
+				print $1"\t"$1"\t"$2"\t"1"\t" "这是标签" "\t" "这是描述" > out"/"tags[i]".txt";
+			}
+		}
+	}
+} END {
+	print "Total:" cnt;
+}' ${temp}.tag_cnt ${temp}.gaoxiaoo
+
+echo -e "需要评估的tag输出到 ${output_dir}"
+
+echo "Finish generated."
+
+
 
 all_files=`ls data/tmp/pinggu/`
 for file in ${all_files[@]}
