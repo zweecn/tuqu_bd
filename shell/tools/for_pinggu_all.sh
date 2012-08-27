@@ -16,11 +16,11 @@ do1="data/temp/dingxiang_mine_all_pinggu"
 output_dir="./data/tmp/pinggu"
 black_obj="./conf/obj_black_list"
 
-rm -rf ${output_dir}
-mkdir -p ${output_dir}
-
-echo "Begin generate the tags file for pingu..."
-
+#rm -rf ${output_dir}
+#mkdir -p ${output_dir}
+#
+#echo "Begin generate the tags file for pingu..."
+#
 #awk -F '\t' '{
 #	if (FILENAME == ARGV[1]) {
 #		desc[$8] = $4; 

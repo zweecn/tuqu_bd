@@ -76,6 +76,8 @@ function pre_tag_modify
 		} else if (FILENAME == ARGV[2]) {
 			clear_char[$1] = 1;
 		} else {
+			delete tags;
+			delete tag_hash;
 			n = split($3, tags, ",");
 			new_tag = "";
 			for (i in tags) {
@@ -83,6 +85,9 @@ function pre_tag_modify
 				if (tag in tag_modi) {
 					tag = tag_modi[tag]; 
 				}
+				tag_hash[tag] = 1;
+			}
+			for (tag in tag_hash) {
 				if (tag == "") {
 					continue;
 				}
@@ -92,6 +97,7 @@ function pre_tag_modify
 					new_tag = new_tag","tag;
 				}
 			}
+			
 			print $1"\t"$2"\t"new_tag;
 		}
 	}' ${tag_map} ${clear_char} ${out}.tmp > ${out}
@@ -182,7 +188,6 @@ function determine_tag_type
 				if (!(tag in pm_tag_cnt)) {
 					continue;
 				}
-
 				total_tag_cnt[tag]++;		
 				if (conflict_mark) {
 					conflict_tag_cnt[tag]++;
@@ -230,6 +235,7 @@ function remove_black_tag
 			tag_freq[$1]=$2;
 		}else{
 			if($1 in obj_black){
+				print > "'${data_tag_type}.obj_black'"		
 				next;
 			}
 			split($3,tags,",");
@@ -339,6 +345,7 @@ function remove_black_tag
 			}
 		}
 	}' ${black_objs} ${black_tags} ${type_index} ${tag_type_list} ${tag_freq_modified} ${data_tag_type} > ${data_tag_type_filter_tags};
+	echo -e "	去掉黑名单前的输入文件是 ${data_tag_type} `wc -l ${data_tag_type} | cut -d' ' -f 1` 行"
 	echo -e "	去掉黑名单后输出文件为 ${data_tag_type_filter_tags} `wc -l ${data_tag_type_filter_tags} | cut -d' ' -f 1` 行"
 	if [ -f ${data_tag_type}.less_tags ]; then
 		echo -e "	tag数量少于2的输出文件为 ${data_tag_type}.less_tags `wc -l ${data_tag_type}.less_tags | cut -d ' ' -f 1` 行"
@@ -346,6 +353,10 @@ function remove_black_tag
 	if [ -f ${data_tag_type}.less_tags.after ]; then
 		echo -e "	tag数量少于2的处理后输出文件为 ${data_tag_type}.less_tags.after `wc -l ${data_tag_type}.less_tags.after | cut -d ' ' -f 1` 行"
 	fi
+	if [ -f ${data_tag_type}.obj_black ]; then
+		echo -e "	黑名单中的obj为 ${data_tag_type}.obj_black `wc -l ${data_tag_type}.obj_black | cut -d ' ' -f 1` 行"
+	fi
+
 }
 
 ### **.dingxiang 在分类信息后增加每个站点信息, 更新每个类别需要的图片数量的配置
@@ -446,9 +457,6 @@ function stat_tags_final_objs
 			split($3, tags, ",");		
 			for (i in tags) {
 				tag = tags[i];
-				if (tag == "服饰") {
-					print;
-				}
 				if (tag in pm_tag_cnt) {
 					last_tag_cnt_no_path[tag]++;
 				} else if (tag in tag_modi_reverse) {
