@@ -129,7 +129,7 @@ function format_data
 		exit 1;
 	fi;
 
-### 5 去掉黑名单中的obj，去掉黑名单中的tag，限制tag数为5. 组成: 最高词频的3个 + 类型2/1个
+### 5 去掉黑名单中的obj，去掉黑名单中的tag，限制tag数为5. 组成: 决定分类的tag有1个 + 次最高词频的3个 + 类型作为tag有1个
 	echo "5. 过滤tag黑名单，限制tag数为5个...";
 	remove_black_tag ${black_objs} ${black_tags} ${type_index} ${tag_freq} ${data_tag_type} ${filter_tags} ${white_tag}
 	if [ ${?} -ne 0 ]

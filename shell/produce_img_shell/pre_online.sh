@@ -97,4 +97,14 @@ echo "[结束]格式化所有数据完成."
 end_mine=`date +%s`
 echo "[时间] `date` 挖掘数据处理耗时 $(($end_mine - $end_dingxiang)) s"
 echo "[总耗时] $(($end_mine - $start_time)) s"
+
+## 按比例生成需求配置的文件
+./shell/produce_img_shell/make_select_conf.sh
+if [ $? -ne 0 ]
+then
+	echo "生成配置文件失败."
+	exit 1
+fi
+
 echo "=============================================================================="
+

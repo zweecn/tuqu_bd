@@ -211,7 +211,7 @@ function determine_tag_type
 }
 
 
-### 5 去掉黑名单中的obj，去掉黑名单中的tag，限制tag数为5. 组成: 最高词频的2个 + 类型1个
+### 5 去掉黑名单中的obj，去掉黑名单中的tag，限制tag数为5. 组成: 决定分类的tag有1个 + 次最高词频的3个 + 类型作为tag有1个
 function remove_black_tag 
 {
 	local black_objs=$1
@@ -517,15 +517,4 @@ function merge_tags_stat
 	echo -e "	格式: tag PM评估的tag次数 去掉无tag后的统计个数 冲突的图片tag统计 没有被分类的数据tag统计 可以确定PM大类的tag统计 选择出有效数据tag统计(含未下载) 有效数据统计(完全下载) tag替换(可选)"
 }
 
-function clear_html
-{
-	local data=$1
-	local char_file=$2	
 
-	while read c
-	do
-		sed -i -e "s#${c}#${replace_char}#g" ${data}
-	done < ${char_file}
-
-	echo "	HTML非法字符的替换完成，输出文件为 ${data}"
-}

@@ -55,7 +55,7 @@ do
 			}
 		}
 	}' $all_format $tag_1_path > $tag_2_path
-	scp $tag_2_path img@tc-apptest-img09.vm.baidu.com:/home/img/lighttpd_8088/htdocs/objInfoByTag 
+#scp $tag_2_path img@tc-apptest-img09.vm.baidu.com:/home/img/lighttpd_8088/htdocs/objInfoByTag 
 done < data/temp/already_pinggu_tags
 
 #echo "Do already pinggu death tags..."
